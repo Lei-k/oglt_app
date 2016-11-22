@@ -38,7 +38,7 @@ void scene::renderScene(oglt::IApp* app) {
 
 	uint w, h;
 	app->getViewport(w, h);
-	ftFont.printFormatted(20, h - 30, 24, "FPS: %d", app->getFps());
+	ftFont.printFormatted(20, h - 35, 24, "FPS: %d", app->getFps());
 
 	glEnable(GL_DEPTH_TEST);
 
