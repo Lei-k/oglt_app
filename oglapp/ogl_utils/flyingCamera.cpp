@@ -2,7 +2,11 @@
 
 #include "flyingCamera.h"
 
+#include "../oglt_key.h"
+
 #include <glm/gtx/rotate_vector.hpp>
+
+using namespace oglt;
 
 const float PI = float(atan(1.0)*4.0);
 
@@ -155,10 +159,10 @@ void CFlyingCamera::Update()
 	int iMove = 0;
 	glm::vec3 vMoveBy;
 	// Get vector of move
-	if(Keys::Key(iForw))vMoveBy += vMove*appMain.sof(1.0f);
-	if(Keys::Key(iBack))vMoveBy -= vMove*appMain.sof(1.0f);
-	if(Keys::Key(iLeft))vMoveBy -= vStrafe*appMain.sof(1.0f);
-	if(Keys::Key(iRight))vMoveBy += vStrafe*appMain.sof(1.0f);
+	if(keys::key(iForw))vMoveBy += vMove*appMain.sof(1.0f);
+	if(keys::key(iBack))vMoveBy -= vMove*appMain.sof(1.0f);
+	if(keys::key(iLeft))vMoveBy -= vStrafe*appMain.sof(1.0f);
+	if(keys::key(iRight))vMoveBy += vStrafe*appMain.sof(1.0f);
 	vEye += vMoveBy; vView += vMoveBy;
 }
 

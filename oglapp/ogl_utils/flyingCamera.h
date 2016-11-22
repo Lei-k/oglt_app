@@ -26,5 +26,3 @@ private:
 	POINT pCur; // For mosue rotation
 	int iForw, iBack, iLeft, iRight;
 };
-
-extern CFlyingCamera cCamera;
