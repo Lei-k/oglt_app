@@ -1,8 +1,9 @@
-#include "common_header.h"
+#include "../std_util.h"
 
 #include "flyingCamera.h"
 
 #include "../oglt_key.h"
+#include "../oglt_cursor.h"
 
 #include <glm/gtx/rotate_vector.hpp>
 
@@ -19,8 +20,9 @@ CFlyingCamera::CFlyingCamera()
 	fSensitivity = 0.1f;
 }
 
-CFlyingCamera::CFlyingCamera(glm::vec3 a_vEye, glm::vec3 a_vView, glm::vec3 a_vUp, float a_fSpeed, float a_fSensitivity)
+CFlyingCamera::CFlyingCamera(oglt::IApp* pApp, glm::vec3 a_vEye, glm::vec3 a_vView, glm::vec3 a_vUp, float a_fSpeed, float a_fSensitivity)
 {
+	this->pApp = pApp;
 	vEye = a_vEye; vView = a_vView; vUp = a_vUp;
 	fSpeed = a_fSpeed;
 	fSensitivity = a_fSensitivity;
@@ -39,13 +41,15 @@ Result:	Checks for moving of mouse and rotates
 
 void CFlyingCamera::RotateWithMouse()
 {
-	GetCursorPos(&pCur);
-	RECT rRect; GetWindowRect(appMain.hWnd, &rRect);
-	int iCentX = (rRect.left+rRect.right)>>1,
-		iCentY = (rRect.top+rRect.bottom)>>1;
+	int x, y;
+	cursor::getCursor(x, y);
+	uint w, h;
+	pApp->getViewport(w, h);
+	int iCentX = w / 2,
+	    iCentY = h / 2;
 
-	float deltaX = (float)(iCentX-pCur.x)*fSensitivity;
-	float deltaY = (float)(iCentY-pCur.y)*fSensitivity;
+	float deltaX = (float)(iCentX- x)*fSensitivity;
+	float deltaY = (float)(iCentY- y)*fSensitivity;
 
 	if(abs(deltaX) > 0.01f)
 	{
@@ -66,7 +70,7 @@ void CFlyingCamera::RotateWithMouse()
 			vView += vEye;
 		}
 	}
-	SetCursorPos(iCentX, iCentY);
+	cursor::setCursor(iCentX, iCentY);
 }
 
 /*-----------------------------------------------
@@ -159,10 +163,10 @@ void CFlyingCamera::Update()
 	int iMove = 0;
 	glm::vec3 vMoveBy;
 	// Get vector of move
-	if(keys::key(iForw))vMoveBy += vMove*appMain.sof(1.0f);
-	if(keys::key(iBack))vMoveBy -= vMove*appMain.sof(1.0f);
-	if(keys::key(iLeft))vMoveBy -= vStrafe*appMain.sof(1.0f);
-	if(keys::key(iRight))vMoveBy += vStrafe*appMain.sof(1.0f);
+	if(keys::key(iForw))vMoveBy += vMove * 1.0f * pApp->getDeltaTime();
+	if(keys::key(iBack))vMoveBy -= vMove * 1.0f * pApp->getDeltaTime();
+	if(keys::key(iLeft))vMoveBy -= vStrafe * 1.0f * pApp->getDeltaTime();
+	if(keys::key(iRight))vMoveBy += vStrafe * 1.0f * pApp->getDeltaTime();
 	vEye += vMoveBy; vView += vMoveBy;
 }
 
@@ -179,10 +183,7 @@ Result:	Sets mouse cursor back to the center of
 
 void CFlyingCamera::ResetMouse()
 {
-	RECT rRect; GetWindowRect(appMain.hWnd, &rRect);
-	int iCentX = (rRect.left+rRect.right)>>1,
-		iCentY = (rRect.top+rRect.bottom)>>1;
-	SetCursorPos(iCentX, iCentY);
+	
 }
 
 /*-----------------------------------------------

@@ -1,5 +1,3 @@
-#include "common_header.h"
-
 #include "shaders.h"
 
 #include <glm/gtc/type_ptr.hpp>
@@ -7,61 +5,6 @@
 CShader::CShader()
 {
 	bLoaded = false;
-}
-
-CShader shShaders[NUMSHADERS];
-CShaderProgram spMain, spOrtho2D, spFont2D, spSkinned;
-
-/*-----------------------------------------------
-
-Name:	PrepareShaderPrograms
-
-Params:	none
-
-Result:	Loads all shaders and creates shader programs.
-
-/*---------------------------------------------*/
-
-bool PrepareShaderPrograms()
-{
-	// Load shaders and create shader program
-
-	string sShaderFileNames[] = {"main_shader.vert", "main_shader.frag", "ortho2D.vert",
-		"ortho2D.frag", "font2D.frag", "dirLight.frag", "skinning.vert", "skinning.frag"
-	};
-
-	FOR(i, NUMSHADERS)
-	{
-		string sExt = sShaderFileNames[i].substr(ESZ(sShaderFileNames[i])-4, 4);
-		int iShaderType = sExt == "vert" ? GL_VERTEX_SHADER : (sExt == "frag" ? GL_FRAGMENT_SHADER : GL_GEOMETRY_SHADER);
-		shShaders[i].LoadShader("data\\shaders\\"+sShaderFileNames[i], iShaderType);
-	}
-
-	// Create shader programs
-
-	spMain.CreateProgram();
-	spMain.AddShaderToProgram(&shShaders[0]);
-	spMain.AddShaderToProgram(&shShaders[1]);
-	spMain.AddShaderToProgram(&shShaders[5]);
-
-	if(!spMain.LinkProgram())return false;
-
-	spOrtho2D.CreateProgram();
-	spOrtho2D.AddShaderToProgram(&shShaders[3]);
-	spOrtho2D.AddShaderToProgram(&shShaders[4]);
-	spOrtho2D.LinkProgram();
-
-	spFont2D.CreateProgram();
-	spFont2D.AddShaderToProgram(&shShaders[2]);
-	spFont2D.AddShaderToProgram(&shShaders[4]);
-	spFont2D.LinkProgram();
-
-	spSkinned.CreateProgram();
-	spSkinned.AddShaderToProgram(&shShaders[6]);
-	spSkinned.AddShaderToProgram(&shShaders[7]);
-	spSkinned.LinkProgram();
-
-	return true;
 }
 
 /*-----------------------------------------------
@@ -78,8 +21,8 @@ Result:	Loads and compiles shader.
 bool CShader::LoadShader(string sFile, int a_iType)
 {
 	vector<string> sLines;
-
-	if(!GetLinesFromFile(sFile, false, &sLines))return false;
+	
+	if (!GetLinesFromFile(sFile, false, &sLines)) return false;
 
 	const char** sProgram = new const char*[ESZ(sLines)];
 	FOR(i, ESZ(sLines))sProgram[i] = sLines[i].c_str();
@@ -101,11 +44,12 @@ bool CShader::LoadShader(string sFile, int a_iType)
 		int iLogLength;
 		glGetShaderInfoLog(uiShader, 1024, &iLogLength, sInfoLog);
 		sprintf(sFinalMessage, "Error! Shader file %s wasn't compiled! The compiler returned:\n\n%s", sFile.c_str(), sInfoLog);
+		cout << sFinalMessage << endl;
 		return false;
 	}
 	iType = a_iType;
 	bLoaded = true;
-
+	
 	return true;
 }
 

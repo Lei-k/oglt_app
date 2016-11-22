@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../oglt_iapp.h"
+
 class CFlyingCamera
 {
 public:
@@ -20,9 +22,10 @@ public:
 
 	// Constructors
 	CFlyingCamera();
-	CFlyingCamera(glm::vec3 a_vEye, glm::vec3 a_vView, glm::vec3 a_vUp, float a_fSpeed, float a_fSensitivity);
+	CFlyingCamera(oglt::IApp* pApp, glm::vec3 a_vEye, glm::vec3 a_vView, glm::vec3 a_vUp, float a_fSpeed, float a_fSensitivity);
 
 private:
-	POINT pCur; // For mosue rotation
 	int iForw, iBack, iLeft, iRight;
+
+	oglt::IApp* pApp;
 };

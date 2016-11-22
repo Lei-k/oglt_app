@@ -180,7 +180,7 @@ Result:	Prints text at specified position
 void CFreeTypeFont::Print(string sText, int x, int y, int iPXSize)
 {
 	if(!bLoaded)return;
-
+	
 	glBindVertexArray(uiVAO);
 	shShaderProgram->SetUniform("gSampler", 0);
 	glEnable(GL_BLEND);

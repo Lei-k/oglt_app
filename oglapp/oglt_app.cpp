@@ -1,6 +1,7 @@
 #include "oglt_app.h"
 
 #include "glut_backend.h"
+#include "oglt_cursor.h"
 
 #include "render_scene.h"
 
@@ -41,10 +42,12 @@ void OgltApp::keyboard(OGLT_KEY key, OGLT_KEY_STATE state){
 }
 
 void OgltApp::mouse(OGLT_BUTTON button, OGLT_BUTTON_STATE state, int x, int y) {
-
+	
 }
 
-#include "std_util.h"
+void OgltApp::mouseMotion(int x, int y) {
+	cursor::setCursor(x, y);
+}
 
 void oglt::OgltApp::reshape(uint width, uint height)
 {

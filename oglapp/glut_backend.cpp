@@ -51,7 +51,6 @@ void oglt::glutBackendRun(ICallback* pCallback) {
 		return;
 	}
 
-	glFrontFace(GL_CW);
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 
@@ -108,6 +107,10 @@ static void mouse(int glutButton, int glutState, int x, int y) {
 	spCallback->mouse(ogltButton, ogltState, x, y);
 }
 
+static void mouseMotion(int x, int y) {
+	spCallback->mouseMotion(x, y);
+}
+
 static void reshape(int width, int height) {
 	spCallback->reshape(width, height);
 }
@@ -116,5 +119,6 @@ void initCallback() {
 	glutDisplayFunc(renderScene);
 	glutIdleFunc(renderScene);
 	glutMouseFunc(mouse);
+	glutPassiveMotionFunc(mouseMotion);
 	glutReshapeFunc(reshape);
 }

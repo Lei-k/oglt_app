@@ -1,4 +1,5 @@
 #pragma once
+#include "common_header.h"
 
 /********************************
 
@@ -84,10 +85,3 @@ private:
 	UINT uiProgram; // ID of program
 	bool bLinked; // Whether program was linked and is ready to use
 };
-
-bool PrepareShaderPrograms();
-
-#define NUMSHADERS 8
-
-extern CShader shShaders[NUMSHADERS];
-extern CShaderProgram spMain, spOrtho2D, spFont2D, spColor, spSkinned;

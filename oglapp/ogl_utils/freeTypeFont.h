@@ -43,7 +43,7 @@ private:
 
 	bool bLoaded;
 
-	UINT uiVAO;
+	uint uiVAO;
 	CVertexBufferObject vboData;
 
 	FT_Library ftLib;
