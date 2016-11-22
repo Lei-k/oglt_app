@@ -2,8 +2,7 @@
 
 #include "flyingCamera.h"
 
-#include "../oglt_key.h"
-#include "../oglt_cursor.h"
+#include "../oglt_device.h"
 
 #include <glm/gtx/rotate_vector.hpp>
 
@@ -42,7 +41,7 @@ Result:	Checks for moving of mouse and rotates
 void CFlyingCamera::RotateWithMouse()
 {
 	int x, y;
-	cursor::getCursor(x, y);
+	device::getCursor(x, y);
 	uint w, h;
 	pApp->getViewport(w, h);
 	int iCentX = w / 2,
@@ -70,7 +69,7 @@ void CFlyingCamera::RotateWithMouse()
 			vView += vEye;
 		}
 	}
-	cursor::setCursor(iCentX, iCentY);
+	device::setCursor(iCentX, iCentY);
 }
 
 /*-----------------------------------------------
@@ -163,10 +162,10 @@ void CFlyingCamera::Update()
 	int iMove = 0;
 	glm::vec3 vMoveBy;
 	// Get vector of move
-	if(keys::key(iForw))vMoveBy += vMove * 1.0f * pApp->getDeltaTime();
-	if(keys::key(iBack))vMoveBy -= vMove * 1.0f * pApp->getDeltaTime();
-	if(keys::key(iLeft))vMoveBy -= vStrafe * 1.0f * pApp->getDeltaTime();
-	if(keys::key(iRight))vMoveBy += vStrafe * 1.0f * pApp->getDeltaTime();
+	if(device::key(iForw))vMoveBy += vMove * 1.0f * pApp->getDeltaTime();
+	if(device::key(iBack))vMoveBy -= vMove * 1.0f * pApp->getDeltaTime();
+	if(device::key(iLeft))vMoveBy -= vStrafe * 1.0f * pApp->getDeltaTime();
+	if(device::key(iRight))vMoveBy += vStrafe * 1.0f * pApp->getDeltaTime();
 	vEye += vMoveBy; vView += vMoveBy;
 }
 

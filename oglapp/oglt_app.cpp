@@ -1,7 +1,7 @@
 #include "oglt_app.h"
 
 #include "glut_backend.h"
-#include "oglt_cursor.h"
+#include "oglt_device.h"
 
 #include "render_scene.h"
 
@@ -46,7 +46,7 @@ void OgltApp::mouse(OGLT_BUTTON button, OGLT_BUTTON_STATE state, int x, int y) {
 }
 
 void OgltApp::mouseMotion(int x, int y) {
-	cursor::setCursor(x, y);
+	device::setCursor(x, y);
 }
 
 void oglt::OgltApp::reshape(uint width, uint height)
