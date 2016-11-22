@@ -1,7 +1,12 @@
 #pragma once
 
+#include <Windows.h>
 #include <stdlib.h>
+#include <algorithm>
 #include <iostream>
+#include <sstream>
+#include <string.h>
+#include <vector>
 #include <time.h>
 
 #define FOR(q,n) for(int q=0;q<n;q++)

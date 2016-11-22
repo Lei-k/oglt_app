@@ -2,7 +2,7 @@
 
 using namespace oglt;
 
-static bool keyStates[256];
+static bool keyStates[256]{ false };
 static device::Cursor cursor;
 
 bool device::key(int ikey) {

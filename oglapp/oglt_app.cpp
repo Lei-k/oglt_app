@@ -38,7 +38,12 @@ void OgltApp::renderScene() {
 }
 
 void OgltApp::keyboard(OGLT_KEY key, OGLT_KEY_STATE state){
+	device::setKey(key, true);
+}
 
+void oglt::OgltApp::keyboardUp(OGLT_KEY key)
+{
+	device::setKey(key, false);
 }
 
 void OgltApp::mouse(OGLT_BUTTON button, OGLT_BUTTON_STATE state, int x, int y) {
