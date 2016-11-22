@@ -30,4 +30,9 @@ namespace oglt {
 	enum OGLT_KEY_STATE {
 
 	};
+
+	enum OGLT_MODEL_TYPE {
+		OGLT_ASSIMP_MODEL,
+		OGLT_NONE_MODEL = 999
+	};
 }

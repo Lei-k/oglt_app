@@ -14,7 +14,7 @@ OgltApp::OgltApp() {
 }
 
 OgltApp::~OgltApp() {
-	render::releaseScene(this);
+	scene::releaseScene(this);
 }
 
 void OgltApp::init(int argc, char** argv, int ogltOptions) {
@@ -27,13 +27,13 @@ bool OgltApp::createWindow(uint width, uint height, const char* title, int ogltO
 }
 
 void OgltApp::run() {
-	render::initScene(this);
+	scene::initScene(this);
 	glutBackendRun(this);
 }
 
 void OgltApp::renderScene() {
 	updateTimer();
-	render::renderScene(this);
+	scene::renderScene(this);
 }
 
 void OgltApp::keyboard(OGLT_KEY key, OGLT_KEY_STATE state){
