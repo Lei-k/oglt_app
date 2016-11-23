@@ -1,6 +1,7 @@
 #include "oglt_app.h"
 
 #include "glut_backend.h"
+#include "oglt_device.h"
 
 #include "render_scene.h"
 
@@ -14,7 +15,7 @@ OgltApp::OgltApp() {
 }
 
 OgltApp::~OgltApp() {
-	render::releaseScene(this);
+	scene::releaseScene(this);
 }
 
 void OgltApp::init(int argc, char** argv, int ogltOptions) {
@@ -27,24 +28,31 @@ bool OgltApp::createWindow(uint width, uint height, const char* title, int ogltO
 }
 
 void OgltApp::run() {
-	render::initScene(this);
+	scene::initScene(this);
 	glutBackendRun(this);
 }
 
 void OgltApp::renderScene() {
 	updateTimer();
-	render::renderScene(this);
+	scene::renderScene(this);
 }
 
 void OgltApp::keyboard(OGLT_KEY key, OGLT_KEY_STATE state){
+	device::setKey(key, true);
+}
 
+void oglt::OgltApp::keyboardUp(OGLT_KEY key)
+{
+	device::setKey(key, false);
 }
 
 void OgltApp::mouse(OGLT_BUTTON button, OGLT_BUTTON_STATE state, int x, int y) {
-
+	
 }
 
-#include "std_util.h"
+void OgltApp::mouseMotion(int x, int y) {
+	device::setCursor(x, y);
+}
 
 void oglt::OgltApp::reshape(uint width, uint height)
 {

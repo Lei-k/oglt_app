@@ -3,25 +3,51 @@
 #include "oglt_util.h"
 #include "std_util.h"
 
-#include <GL/glew.h>
+#include "oglt_shader.h"
+#include "oglt_freetypefont.h"
 
-float timer = 0.0f;
+using namespace oglt;
 
-void render::initScene(oglt::IApp* app) {
+FreeTypeFont ftFont;
+
+Shader ortho, font;
+ShaderProgram spFont;
+
+void scene::initScene(oglt::IApp* app) {
 	glClearColor(0.1f, 0.3f, 0.7f, 1.0f);
+
+	ortho.loadShader("data/shaders/ortho2D.vert", GL_VERTEX_SHADER);
+	font.loadShader("data/shaders/font2D.frag", GL_FRAGMENT_SHADER);
+
+	spFont.createProgram();
+	spFont.addShaderToProgram(&ortho);
+	spFont.addShaderToProgram(&font);
+	spFont.linkProgram();
+
+	ftFont.loadFont("data/fonts/SugarpunchDEMO.otf", 32);
+	ftFont.setShaderProgram(&spFont);
 }
 
-void render::renderScene(oglt::IApp* app) {
+void scene::renderScene(oglt::IApp* app) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	timer += app->getDeltaTime();
-	if (timer > 1.0f) {
-		cout << "fps: " << app->getFps() << endl;
-		cout << "delta time: " << app->getDeltaTime() << endl;
-		timer -= 1.0f;
-	}
+
+	spFont.useProgram();
+	spFont.setUniform("matrices.projMatrix", app->getOrth());
+	spFont.setUniform("vColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	glDisable(GL_DEPTH_TEST);
+
+	uint w, h;
+	app->getViewport(w, h);
+	ftFont.printFormatted(20, h - 35, 24, "FPS: %d", app->getFps());
+
+	glEnable(GL_DEPTH_TEST);
+
 	app->swapBuffers();
 }
 
-void render::releaseScene(oglt::IApp* app) {
+void scene::releaseScene(oglt::IApp* app) {
+	spFont.deleteProgram();
 
+	ortho.deleteShader();
+	font.deleteShader();
 }
