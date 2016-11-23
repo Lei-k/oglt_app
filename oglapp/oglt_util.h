@@ -10,6 +10,10 @@ namespace oglt {
 #define OGLT_STENCIL  0x0002
 #define OGLT_FULLSCREEN 0x0004
 
+#define OGLT_RENDER_NONE 0X0000
+#define OGLT_RENDER_SELF 0x0001
+#define OGLT_RENDER_CHILDREN 0x002
+
 	typedef unsigned int uint;
 
 	enum OGLT_BUTTON {
