@@ -5,6 +5,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 using namespace oglt;
+using namespace oglt::scene;
 
 const float PI = float(atan(1.0)*4.0);
 
