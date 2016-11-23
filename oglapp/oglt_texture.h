@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../std_util.h"
-#include "../oglt_util.h"
+#include "std_util.h"
+#include "oglt_util.h"
 
 enum ETextureFiltering
 {

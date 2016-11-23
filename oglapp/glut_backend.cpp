@@ -132,7 +132,7 @@ static void keyboardUp(unsigned char glutKey, int x, int y) {
 		((glutKey >= 'a') && (glutKey <= 'z'))
 		) {
 		OGLT_KEY key = (OGLT_KEY)glutKey;
-		spCallback->keyboardUp(key);
+		spCallback->keyboard(key, OGLT_KEY_RELEASE);
 	}
 	else {
 		cout << "use oglt undefined key" << endl;
