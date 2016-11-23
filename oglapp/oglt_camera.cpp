@@ -11,7 +11,7 @@ const float PI = float(atan(1.0)*4.0);
 
 FlyingCamera::FlyingCamera()
 {
-	vEye = glm::vec3(0.0f, 0.0f, 0.0f);
+	localTransform.position = glm::vec3(0.0f, 0.0f, 0.0f);
 	vView = glm::vec3(0.0f, 0.0, -1.0f);
 	vUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	speed = 25.0f;
@@ -21,7 +21,7 @@ FlyingCamera::FlyingCamera()
 FlyingCamera::FlyingCamera(oglt::IApp* app, glm::vec3 a_vEye, glm::vec3 a_vView, glm::vec3 a_vUp, float a_fSpeed, float a_fSensitivity)
 {
 	this->app = app;
-	vEye = a_vEye; vView = a_vView; vUp = a_vUp;
+	localTransform.position = a_vEye; vView = a_vView; vUp = a_vUp;
 	speed = a_fSpeed;
 	sensitivity = a_fSensitivity;
 }
@@ -51,21 +51,21 @@ void FlyingCamera::rotateWithMouse()
 
 	if (abs(deltaX) > 0.01f)
 	{
-		vView -= vEye;
+		vView -= localTransform.position;
 		vView = glm::rotate(vView, deltaX, glm::vec3(0.0f, 1.0f, 0.0f));
-		vView += vEye;
+		vView += localTransform.position;
 	}
 	if (abs(deltaY) > 0.01f)
 	{
-		glm::vec3 vAxis = glm::cross(vView - vEye, vUp);
+		glm::vec3 vAxis = glm::cross(vView - localTransform.position, vUp);
 		vAxis = glm::normalize(vAxis);
 		float fAngle = deltaY;
 		float fNewAngle = fAngle + getAngleX();
 		if (fNewAngle > -89.80f && fNewAngle < 89.80f)
 		{
-			vView -= vEye;
+			vView -= localTransform.position;
 			vView = glm::rotate(vView, deltaY, vAxis);
-			vView += vEye;
+			vView += localTransform.position;
 		}
 	}
 	device::setCursor(iCentX, iCentY);
@@ -84,7 +84,7 @@ and right).
 
 float FlyingCamera::getAngleY()
 {
-	glm::vec3 vDir = vView - vEye; vDir.y = 0.0f;
+	glm::vec3 vDir = vView - localTransform.position; vDir.y = 0.0f;
 	glm::normalize(vDir);
 	float fAngle = acos(glm::dot(glm::vec3(0, 0, -1), vDir))*(180.0f / PI);
 	if (vDir.x < 0)fAngle = 360.0f - fAngle;
@@ -104,7 +104,7 @@ and down).
 
 float FlyingCamera::getAngleX()
 {
-	glm::vec3 vDir = vView - vEye;
+	glm::vec3 vDir = vView - localTransform.position;
 	vDir = glm::normalize(vDir);
 	glm::vec3 vDir2 = vDir; vDir2.y = 0.0f;
 	vDir2 = glm::normalize(vDir2);
@@ -150,11 +150,11 @@ void FlyingCamera::update()
 	rotateWithMouse();
 
 	// Get view direction
-	glm::vec3 vMove = vView - vEye;
+	glm::vec3 vMove = vView - localTransform.position;
 	vMove = glm::normalize(vMove);
 	vMove *= speed;
 
-	glm::vec3 vStrafe = glm::cross(vView - vEye, vUp);
+	glm::vec3 vStrafe = glm::cross(vView - localTransform.position, vUp);
 	vStrafe = glm::normalize(vStrafe);
 	vStrafe *= speed;
 
@@ -165,7 +165,9 @@ void FlyingCamera::update()
 	if (device::key(backKey))vMoveBy -= vMove * 1.0f * app->getDeltaTime();
 	if (device::key(leftKey))vMoveBy -= vStrafe * 1.0f * app->getDeltaTime();
 	if (device::key(rightKey))vMoveBy += vStrafe * 1.0f * app->getDeltaTime();
-	vEye += vMoveBy; vView += vMoveBy;
+	localTransform.position += vMoveBy; vView += vMoveBy;
+
+	viewMatrix = glm::lookAt(localTransform.position, vView, vUp);
 }
 
 /*-----------------------------------------------
@@ -197,7 +199,7 @@ camera look.
 
 /*---------------------------------------------*/
 
-glm::mat4 FlyingCamera::look()
+glm::mat4* FlyingCamera::look()
 {
-	return glm::lookAt(vEye, vView, vUp);
+	return &viewMatrix;
 }
