@@ -32,13 +32,17 @@ void SceneObject::removeRenderObj(oglt::IRenderable * renderObj)
 
 void SceneObject::Render(int renderType)
 {
+	shaderProgram->setUniform("matrices.modelMatrix", modelMatrix);
 	FOR (i, renderObjs.size()) {
 		renderObjs[i]->Render();
 	}
 
-	renderType |= OGLT_RENDER_SELF;
-
 	if (renderType & OGLT_RENDER_CHILDREN) {
-		child->Render(renderType);
+		if (SceneObject* bortherSceneObj = dynamic_cast<SceneObject*>(brother)) {
+			bortherSceneObj->Render(renderType);
+		}
+		if (SceneObject* childSceneObj = dynamic_cast<SceneObject*>(child)) {
+			childSceneObj->Render(renderType);
+		}
 	}
 }

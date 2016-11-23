@@ -3,7 +3,6 @@
 #include "oglt_util.h"
 #include "std_util.h"
 #include "oglt_scene_node.h"
-//#include "oglt_irenderable.h"
 #include "oglt_shader.h"
 
 namespace oglt {
