@@ -5,7 +5,7 @@ using namespace oglt::scene;
 
 SceneObject::SceneObject()
 {
-	shaderProgram = NULL;
+	
 }
 
 SceneObject::~SceneObject()

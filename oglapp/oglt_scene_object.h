@@ -3,11 +3,10 @@
 #include "oglt_util.h"
 #include "std_util.h"
 #include "oglt_scene_node.h"
-#include "oglt_shader.h"
 
 namespace oglt {
 	namespace scene {
-		class SceneObject : SceneNode {
+		class SceneObject : public SceneNode {
 		public:
 			SceneObject();
 			~SceneObject();
@@ -18,8 +17,6 @@ namespace oglt {
 			virtual void render(int renderType = OGLT_RENDER_SELF);
 		private:
 			vector<oglt::IRenderable*> renderObjs;
-
-			ShaderProgram* shaderProgram;
 		};
 	}
 }

@@ -5,7 +5,7 @@
 
 namespace oglt {
 	namespace scene {
-		class FlyingCamera : SceneNode
+		class FlyingCamera : public SceneNode
 		{
 		public:
 			float speed;

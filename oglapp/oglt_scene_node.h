@@ -14,7 +14,7 @@ namespace oglt {
 			glm::vec3 scale;
 		};
 
-		class SceneNode : IRenderable {
+		class SceneNode : public IRenderable {
 		public:
 			SceneNode();
 			~SceneNode();
