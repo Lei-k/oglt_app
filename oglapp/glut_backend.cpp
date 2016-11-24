@@ -58,6 +58,8 @@ void oglt::glutBackendRun(ICallback* pCallback) {
 		glEnable(GL_DEPTH_TEST);
 	}
 
+	glutSetCursor(GLUT_CURSOR_NONE);
+
 	spCallback = pCallback;
 	initCallback();
 	glutMainLoop();
