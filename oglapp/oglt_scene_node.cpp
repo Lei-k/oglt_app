@@ -50,7 +50,7 @@ void SceneNode::calcNodeHeirarchyTransform()
 	glm::mat4 rotationMatrix = glm::toMat4(worldTransform.rotation);
 	glm::mat4 scaleMatrix = glm::scale(glm::mat4(1), worldTransform.scale);
 	modelMatrix = translateMatrix * rotationMatrix * scaleMatrix;
-
+	
 	if (brother != NULL)
 		brother->calcNodeHeirarchyTransform();
 	

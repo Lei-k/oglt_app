@@ -167,7 +167,16 @@ void FlyingCamera::update()
 	if (device::key(rightKey))vMoveBy += vStrafe * 1.0f * app->getDeltaTime();
 	localTransform.position += vMoveBy; vView += vMoveBy;
 
-	viewMatrix = glm::lookAt(localTransform.position, vView, vUp);
+	glm::vec3 vEye;
+	if (parent != NULL) {
+		vEye = parent->getWorldTransform()->position +
+			localTransform.position * parent->getWorldTransform()->rotation;
+	}
+	else {
+		vEye = localTransform.position;
+	}
+	
+	viewMatrix = glm::lookAt(vEye, vView, vUp);
 }
 
 /*-----------------------------------------------

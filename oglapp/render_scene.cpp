@@ -17,7 +17,7 @@ FreeTypeFont ftFont;
 Skybox skybox;
 FlyingCamera camera;
 
-Shader ortho, font, vtMain, fgMain;
+Shader ortho, font, vtMain, fgMain, dirLight;
 ShaderProgram spFont, spMain;
 
 void scene::initScene(oglt::IApp* app) {
@@ -27,6 +27,7 @@ void scene::initScene(oglt::IApp* app) {
 	font.loadShader("data/shaders/font2D.frag", GL_FRAGMENT_SHADER);
 	vtMain.loadShader("data/shaders/main_shader.vert", GL_VERTEX_SHADER);
 	fgMain.loadShader("data/shaders/main_shader.frag", GL_FRAGMENT_SHADER);
+	dirLight.loadShader("data/shaders/dirLight.frag", GL_FRAGMENT_SHADER);
 
 	spFont.createProgram();
 	spFont.addShaderToProgram(&ortho);
@@ -35,39 +36,44 @@ void scene::initScene(oglt::IApp* app) {
 
 	spMain.createProgram();
 	spMain.addShaderToProgram(&vtMain);
+	spMain.addShaderToProgram(&dirLight);
 	spMain.addShaderToProgram(&fgMain);
 	spMain.linkProgram();
-
-	spMain.setUniform("sunLight.vColor", vec3(1.0f, 1.0f, 1.0f));
-	spMain.setUniform("sunLight.vDirection", vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0));
-	spMain.setUniform("sunLight.fAmbient", 0.5f);
 
 	ftFont.loadFont("data/fonts/SugarpunchDEMO.otf", 32);
 	ftFont.setShaderProgram(&spFont);
 	
-	skybox.load("data/skyboxes/elbrus/", "elbrus_front.jpg", "elbrus_back.jpg", "elbrus_left.jpb", "elbrus_right.jpg", "elbrus_top.jpg", "elbrus_bottom.jpg");
+	skybox.load("data/skyboxes/jajlands1/", "jajlands1_ft.jpg", "jajlands1_bk.jpg", "jajlands1_lf.jpg", "jajlands1_rt.jpg", "jajlands1_up.jpg", "jajlands1_dn.jpg");
 	skybox.setShaderProgram(&spMain);
-	skybox.getLocalTransform()->scale = vec3(50, 50, 50);
+	skybox.getLocalTransform()->scale = vec3(2.0f, 2.0f, 2.0f);
 
-	camera = FlyingCamera(app, vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, 30.0f), vec3(0.0f, 1.0f, 0.0f), 1.0f, 0.01f);
+	camera = FlyingCamera(app, vec3(0.0f, 10.0f, 20.0f), vec3(0.0f, 10.0f, 18.0f), vec3(0.0f, 1.0f, 0.0f), 25.0f, 0.01f);
 	camera.setMovingKeys('w', 's', 'a', 'd');
+	camera.addChild(&skybox);
+
+	glEnable(GL_DEPTH_TEST);
+	glClearDepth(1.0);
 }
 
 void scene::renderScene(oglt::IApp* app) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	camera.update();
-
+	
 	spMain.useProgram();
 	spMain.setUniform("matrices.viewMatrix", camera.look());
 	spMain.setUniform("matrices.projMatrix", app->getProj());
+	spMain.setUniform("sunLight.vColor", vec3(1.0f, 1.0f, 1.0f));
+	spMain.setUniform("sunLight.vDirection", vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0));
+	spMain.setUniform("sunLight.fAmbient", 0.5f);
+	spMain.setUniform("vColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-	skybox.calcNodeHeirarchyTransform();
+	camera.calcNodeHeirarchyTransform();
 	skybox.render();
 
 	spFont.useProgram();
 	spFont.setUniform("matrices.projMatrix", app->getOrth());
-	spFont.setUniform("vColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	spFont.setUniform("vColor", vec4(1.0f, 1.0f, 1.0f, 1.0f));
 	glDisable(GL_DEPTH_TEST);
 
 	uint w, h;
@@ -90,4 +96,5 @@ void scene::releaseScene(oglt::IApp* app) {
 	spMain.deleteProgram();
 	vtMain.deleteShader();
 	fgMain.deleteShader();
+	dirLight.deleteShader();
 }

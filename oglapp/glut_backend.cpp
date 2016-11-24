@@ -63,6 +63,11 @@ void oglt::glutBackendRun(ICallback* pCallback) {
 	glutMainLoop();
 }
 
+void oglt::glutBackendSetCursor(int x, int y)
+{
+	glutWarpPointer(x, y);
+}
+
 void oglt::glutBackendSwapBuffers() {
 	glutSwapBuffers();
 }

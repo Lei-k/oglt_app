@@ -35,12 +35,18 @@ void OgltApp::run() {
 void OgltApp::renderScene() {
 	updateTimer();
 	scene::renderScene(this);
+	int x, y;
+	device::getCursor(x, y);
+	glutBackendSetCursor(x, y);
 }
 
 void OgltApp::keyboard(OGLT_KEY key, OGLT_KEY_STATE state){
 	switch (state) {
 	case OGLT_KEY_PRESS:
 		device::setKey(key, true);
+		if (key == 'q') {
+			exit(0);
+		}
 		break;
 	case OGLT_KEY_RELEASE:
 		device::setKey(key, false);
