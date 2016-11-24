@@ -64,9 +64,9 @@ void SceneNode::addChild(SceneNode * child)
 		this->child = child;
 	}
 	else {
-		SceneNode* lastBrother = child->brother;
-		while (lastBrother != NULL) {
-			lastBrother = brother->brother;
+		SceneNode* lastBrother = this->child;
+		while (lastBrother->brother != NULL) {
+			lastBrother = lastBrother->brother;
 		}
 		lastBrother->brother = child;
 	}
@@ -90,6 +90,7 @@ void SceneNode::removeChild(SceneNode * child)
 			SceneNode* brotherNode = childNode->brother;
 			while (brotherNode != NULL) {
 				brotherNode->parent = node->parent;
+				brotherNode = brotherNode->brother;
 			}
 		}
 	}

@@ -67,7 +67,7 @@ void oglt::OgltApp::reshape(uint width, uint height)
 	viewportWidth = width;
 	viewportHeight = height;
 	glViewport(0, 0, width, height);
-	proj = glm::perspective(45.0f, (float)width / (float)height, 0.005f, 1000.0f);
+	proj = glm::perspective(45.0f, (float)width / (float)height, 0.005f, 10000.0f);
 	orth = glm::ortho(0.0f, (float)width, 0.0f, (float)height);
 }
 

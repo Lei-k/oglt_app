@@ -27,13 +27,18 @@ void SceneObject::removeRenderObj(oglt::IRenderable * renderObj)
 
 void SceneObject::render(int renderType)
 {
-	shaderProgram->setUniform("matrices.modelMatrix", modelMatrix);
+	if(shaderProgram != NULL)
+		shaderProgram->setUniform("matrices.modelMatrix", modelMatrix);
+
 	FOR (i, renderObjs.size()) {
 		renderObjs[i]->render();
 	}
 
 	if (renderType & OGLT_RENDER_CHILDREN) {
-		brother->render(renderType);
-		child->render(renderType);
+		if(brother != NULL)
+			brother->render(renderType);
+
+		if(child != NULL)
+			child->render(renderType);
 	}
 }

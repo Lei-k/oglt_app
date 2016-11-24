@@ -7,6 +7,8 @@
 #include "oglt_freetypefont.h"
 #include "oglt_skybox.h"
 #include "oglt_camera.h"
+#include "oglt_assimp_model.h"
+#include "oglt_scene_object.h"
 
 using namespace oglt;
 using namespace oglt::scene;
@@ -16,6 +18,8 @@ using namespace glm;
 FreeTypeFont ftFont;
 Skybox skybox;
 FlyingCamera camera;
+SceneObject worldTree, cityObj;
+AssimpModel cityModel;
 
 Shader ortho, font, vtMain, fgMain, dirLight;
 ShaderProgram spFont, spMain;
@@ -45,11 +49,19 @@ void scene::initScene(oglt::IApp* app) {
 	
 	skybox.load("data/skyboxes/jajlands1/", "jajlands1_ft.jpg", "jajlands1_bk.jpg", "jajlands1_lf.jpg", "jajlands1_rt.jpg", "jajlands1_up.jpg", "jajlands1_dn.jpg");
 	skybox.setShaderProgram(&spMain);
-	skybox.getLocalTransform()->scale = vec3(2.0f, 2.0f, 2.0f);
+	skybox.getLocalTransform()->scale = vec3(10.0f, 10.0f, 10.0f);
 
-	camera = FlyingCamera(app, vec3(0.0f, 10.0f, 20.0f), vec3(0.0f, 10.0f, 18.0f), vec3(0.0f, 1.0f, 0.0f), 25.0f, 0.02f);
+	camera = FlyingCamera(app, vec3(0.0f, 10.0f, 20.0f), vec3(0.0f, 10.0f, 18.0f), vec3(0.0f, 1.0f, 0.0f), 25.0f, 0.01f);
 	camera.setMovingKeys('w', 's', 'a', 'd');
 	camera.addChild(&skybox);
+
+	cityModel.loadModelFromFile("data/models/The City/The City.obj");
+	cityModel.finalizeVBO();
+	cityObj.addRenderObj(&cityModel);
+	cityObj.setShaderProgram(&spMain);
+	
+	worldTree.addChild(&camera);
+	worldTree.addChild(&cityObj);
 
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
@@ -58,6 +70,7 @@ void scene::initScene(oglt::IApp* app) {
 void scene::renderScene(oglt::IApp* app) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	worldTree.calcNodeHeirarchyTransform();
 	camera.update();
 	
 	spMain.useProgram();
@@ -68,8 +81,7 @@ void scene::renderScene(oglt::IApp* app) {
 	spMain.setUniform("sunLight.fAmbient", 1.0f);
 	spMain.setUniform("vColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
-	camera.calcNodeHeirarchyTransform();
-	skybox.render();
+	worldTree.render(OGLT_RENDER_CHILDREN);
 
 	spFont.useProgram();
 	spFont.setUniform("matrices.projMatrix", app->getOrth());
