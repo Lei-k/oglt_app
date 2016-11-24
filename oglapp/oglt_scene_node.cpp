@@ -40,7 +40,7 @@ void SceneNode::calcNodeHeirarchyTransform()
 	if (parent != NULL) {
 		worldTransform.position = parent->worldTransform.position 
 			+ localTransform.position * parent->worldTransform.rotation;
-		worldTransform.rotation = localTransform.rotation * parent->worldTransform.rotation;
+		worldTransform.rotation = parent->worldTransform.rotation * localTransform.rotation;
 		worldTransform.scale = parent->worldTransform.scale * localTransform.scale;
 	}
 	else {

@@ -167,6 +167,7 @@ void FlyingCamera::update()
 	if (parent != NULL) {
 		vEye = parent->getWorldTransform()->position +
 			localTransform.position * parent->getWorldTransform()->rotation;
+		vUp = parent->getWorldTransform()->rotation * localTransform.rotation * vUp;
 	}
 	else {
 		vEye = localTransform.position;
