@@ -105,7 +105,7 @@ Result: Guess what it does :)
 
 void Skybox::render(int renderType)
 {
-	shaderProgram->setUniform("matrices.modelMatrix", modelMatrix);
+	shaderProgram->setModelAndNormalMatrix("matrices.modelMatrix", "matrices.normalMatrix", modelMatrix);
 	glDepthMask(0);
 	glBindVertexArray(vao);
 	FOR(i, 6)

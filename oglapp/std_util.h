@@ -9,6 +9,7 @@
 #include <string.h>
 #include <vector>
 #include <time.h>
+#include <math.h>
 
 #define FOR(q,n) for(int q=0;q<n;q++)
 #define SFOR(q,s,e) for(int q=s;q<=e;q++)

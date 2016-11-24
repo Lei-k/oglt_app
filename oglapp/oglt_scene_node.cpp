@@ -9,6 +9,9 @@ SceneNode::SceneNode()
 	parent = NULL;
 	child = NULL;
 	brother = NULL;
+	localTransform.position = glm::vec3(0.0f, 0.0f, 0.0f);
+	localTransform.rotation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
+	localTransform.scale = glm::vec3(1.0f, 1.0f, 1.0f);
 	modelMatrix = glm::mat4(1);
 }
 
