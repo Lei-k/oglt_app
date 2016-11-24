@@ -28,7 +28,7 @@ namespace oglt {
 			void removeChild(SceneNode* child);
 			bool isRootNode();
 
-			virtual void Render(int renderType = OGLT_RENDER_SELF){}
+			virtual void render(int renderType = OGLT_RENDER_SELF){}
 		protected:
 			Transform localTransform;
 			Transform worldTransform;

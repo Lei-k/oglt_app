@@ -12,11 +12,6 @@ SceneObject::~SceneObject()
 {
 }
 
-void SceneObject::setShaderProgram(ShaderProgram * shaderProgram)
-{
-	this->shaderProgram = shaderProgram;
-}
-
 void SceneObject::addRenderObj(oglt::IRenderable * renderObj)
 {
 	renderObjs.push_back(renderObj);
@@ -30,19 +25,15 @@ void SceneObject::removeRenderObj(oglt::IRenderable * renderObj)
 	}
 }
 
-void SceneObject::Render(int renderType)
+void SceneObject::render(int renderType)
 {
 	shaderProgram->setUniform("matrices.modelMatrix", modelMatrix);
 	FOR (i, renderObjs.size()) {
-		renderObjs[i]->Render();
+		renderObjs[i]->render();
 	}
 
 	if (renderType & OGLT_RENDER_CHILDREN) {
-		if (SceneObject* bortherSceneObj = dynamic_cast<SceneObject*>(brother)) {
-			bortherSceneObj->Render(renderType);
-		}
-		if (SceneObject* childSceneObj = dynamic_cast<SceneObject*>(child)) {
-			childSceneObj->Render(renderType);
-		}
+		brother->render(renderType);
+		child->render(renderType);
 	}
 }
