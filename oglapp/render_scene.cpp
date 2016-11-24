@@ -65,7 +65,7 @@ void scene::renderScene(oglt::IApp* app) {
 	spMain.setUniform("matrices.projMatrix", app->getProj());
 	spMain.setUniform("sunLight.vColor", vec3(1.0f, 1.0f, 1.0f));
 	spMain.setUniform("sunLight.vDirection", vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0));
-	spMain.setUniform("sunLight.fAmbient", 0.5f);
+	spMain.setUniform("sunLight.fAmbient", 1.0f);
 	spMain.setUniform("vColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	camera.calcNodeHeirarchyTransform();
