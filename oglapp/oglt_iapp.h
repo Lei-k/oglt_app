@@ -5,6 +5,10 @@
 #include <glm\glm.hpp>
 
 namespace oglt {
+	struct Cursor {
+		int x, y;
+	};
+
 	class IApp {
 	public:
 		virtual void getViewport(uint& width, uint& height) { 
@@ -18,6 +22,12 @@ namespace oglt {
 		virtual int getFps() { return fps; }
 
 		virtual void swapBuffers(){}
+
+		virtual void setCursor(int x, int y){}
+		virtual void getCursor(int& x, int& y){}
+
+		virtual bool key(int ikey) { return false; }
+
 	protected:
 		virtual void init() {
 			deltaTime = 0;
@@ -48,5 +58,8 @@ namespace oglt {
 
 		clock_t lastClock;
 		clock_t clockInSecond;
+
+		static bool keyStates[256];
+		static Cursor cursor;
 	};
 }

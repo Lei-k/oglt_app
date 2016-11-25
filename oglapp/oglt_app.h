@@ -3,7 +3,7 @@
 #include "oglt_iapp.h"
 
 namespace oglt {
-	class OgltApp : ICallback, IApp {
+	class OgltApp : public IApp, ICallback {
 	public:
 		OgltApp();
 		~OgltApp();
@@ -18,5 +18,10 @@ namespace oglt {
 		virtual void reshape(uint width, uint height);
 
 		virtual void swapBuffers();
+
+		virtual void setCursor(int x, int y);
+		virtual void getCursor(int& x, int& y);
+
+		virtual bool key(int ikey);
 	};
 }

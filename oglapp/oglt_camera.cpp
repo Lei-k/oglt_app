@@ -1,5 +1,4 @@
 #include "std_util.h"
-#include "oglt_device.h"
 #include "oglt_camera.h"
 
 #include <glm/gtx/rotate_vector.hpp>
@@ -40,7 +39,7 @@ camera.
 void FlyingCamera::rotateWithMouse()
 {
 	int x, y;
-	device::getCursor(x, y);
+	app->getCursor(x, y);
 	uint w, h;
 	app->getViewport(w, h);
 	int iCentX = w / 2,
@@ -64,7 +63,7 @@ void FlyingCamera::rotateWithMouse()
 		vView += localTransform.position;
 	}
 
-	device::setCursor(iCentX, iCentY);
+	app->setCursor(iCentX, iCentY);
 }
 
 /*-----------------------------------------------
@@ -157,10 +156,10 @@ void FlyingCamera::update()
 	int iMove = 0;
 	glm::vec3 vMoveBy;
 	// Get vector of move
-	if (device::key(forwKey))vMoveBy += vMove * 1.0f * app->getDeltaTime();
-	if (device::key(backKey))vMoveBy -= vMove * 1.0f * app->getDeltaTime();
-	if (device::key(leftKey))vMoveBy -= vStrafe * 1.0f * app->getDeltaTime();
-	if (device::key(rightKey))vMoveBy += vStrafe * 1.0f * app->getDeltaTime();
+	if (app->key(forwKey))vMoveBy += vMove * 1.0f * app->getDeltaTime();
+	if (app->key(backKey))vMoveBy -= vMove * 1.0f * app->getDeltaTime();
+	if (app->key(leftKey))vMoveBy -= vStrafe * 1.0f * app->getDeltaTime();
+	if (app->key(rightKey))vMoveBy += vStrafe * 1.0f * app->getDeltaTime();
 	localTransform.position += vMoveBy; vView += vMoveBy;
 
 	glm::vec3 vEye;
@@ -191,7 +190,7 @@ void FlyingCamera::resetMouse()
 {
 	uint w, h;
 	app->getViewport(w, h);
-	device::setCursor((float)w / 2.0f, (float)h / 2.0f);
+	app->setCursor((float)w / 2.0f, (float)h / 2.0f);
 }
 
 void FlyingCamera::render(int renderType)

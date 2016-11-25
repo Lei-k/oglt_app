@@ -51,7 +51,7 @@ void scene::initScene(oglt::IApp* app) {
 	skybox.setShaderProgram(&spMain);
 	skybox.getLocalTransform()->scale = vec3(10.0f, 10.0f, 10.0f);
 
-	camera = FlyingCamera(app, vec3(0.0f, 10.0f, 20.0f), vec3(0.0f, 10.0f, 18.0f), vec3(0.0f, 1.0f, 0.0f), 25.0f, 0.01f);
+	camera = FlyingCamera(app, vec3(0.0f, 10.0f, 20.0f), vec3(0.0f, 10.0f, 18.0f), vec3(0.0f, 1.0f, 0.0f), 50.0f, 0.01f);
 	camera.setMovingKeys('w', 's', 'a', 'd');
 	camera.addChild(&skybox);
 
