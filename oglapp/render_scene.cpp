@@ -56,7 +56,6 @@ void scene::initScene(oglt::IApp* app) {
 	camera.addChild(&skybox);
 
 	cityModel.loadModelFromFile("data/models/The City/The City.obj");
-	cityModel.finalizeVBO();
 	cityObj.addRenderObj(&cityModel);
 	cityObj.setShaderProgram(&spMain);
 	

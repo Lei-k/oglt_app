@@ -8,10 +8,6 @@
 
 using namespace oglt;
 
-VertexBufferObject AssimpModel::vboData;
-UINT AssimpModel::vao;
-vector<Texture> AssimpModel::textures;
-
 /*-----------------------------------------------
 
 Name:	getDirectoryPath
@@ -51,11 +47,8 @@ Result: Loads model using Assimp library.
 
 bool AssimpModel::loadModelFromFile(char* sFilePath)
 {
-	if (vboData.getBufferID() == 0)
-	{
-		vboData.createVBO();
-		textures.reserve(50);
-	}
+	vboData.createVBO();
+
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(sFilePath,
 		aiProcess_CalcTangentSpace |
@@ -136,12 +129,14 @@ bool AssimpModel::loadModelFromFile(char* sFilePath)
 		materialIndices[i] = materialRemap[iOldIndex];
 	}
 
+	finalizeVBO();
+
 	return loaded = true;
 }
 
 /*-----------------------------------------------
 
-Name:	FinalizeVBO
+Name:	finalizeVBO
 
 Params: none
 
@@ -169,7 +164,7 @@ void AssimpModel::finalizeVBO()
 
 /*-----------------------------------------------
 
-Name:	BindModelsVAO
+Name:	bindModelsVAO
 
 Params: none
 
@@ -184,9 +179,9 @@ void AssimpModel::bindModelsVAO()
 
 /*-----------------------------------------------
 
-Name:	RenderModel
+Name:	render
 
-Params: none
+Params: int render type
 
 Result: Guess what it does ^^.
 

@@ -17,16 +17,16 @@ namespace oglt {
 	public:
 		bool loadModelFromFile(char* sFilePath);
 
-		static void finalizeVBO();
-		static void bindModelsVAO();
-
 		virtual void render(int renderType = OGLT_RENDER_SELF);
 		AssimpModel();
 	private:
+		void bindModelsVAO();
+		void finalizeVBO();
+
 		bool loaded;
-		static VertexBufferObject vboData;
-		static UINT vao;
-		static vector<Texture> textures;
+		VertexBufferObject vboData;
+		uint vao;
+		vector<Texture> textures;
 		vector<uint> meshStartIndices;
 		vector<uint> meshSizes;
 		vector<uint> materialIndices;
