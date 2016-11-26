@@ -18,8 +18,8 @@ using namespace glm;
 FreeTypeFont ftFont;
 Skybox skybox;
 FlyingCamera camera;
-SceneObject worldTree, cityObj;
-AssimpModel cityModel;
+SceneObject worldTree, cityObj, rObj;
+AssimpModel cityModel, rModel;
 
 Shader ortho, font, vtMain, fgMain, dirLight;
 ShaderProgram spFont, spMain;
@@ -58,9 +58,14 @@ void scene::initScene(oglt::IApp* app) {
 	cityModel.loadModelFromFile("data/models/The City/The City.obj");
 	cityObj.addRenderObj(&cityModel);
 	cityObj.setShaderProgram(&spMain);
+
+	rModel.loadModelFromFile("data/models/R/R.obj");
+	rObj.addRenderObj(&rModel);
+	rObj.setShaderProgram(&spMain);
 	
 	worldTree.addChild(&camera);
 	worldTree.addChild(&cityObj);
+	cityObj.addChild(&rObj);
 
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
@@ -90,6 +95,7 @@ void scene::renderScene(oglt::IApp* app) {
 	uint w, h;
 	app->getViewport(w, h);
 	ftFont.printFormatted(20, h - 35, 24, "FPS: %d", app->getFps());
+	ftFont.print("OgltApp : https://github.com/Lei-k/oglt_app", 20, 30);
 
 	glEnable(GL_DEPTH_TEST);
 

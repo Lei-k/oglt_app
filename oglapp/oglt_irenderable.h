@@ -10,6 +10,7 @@ namespace oglt {
 		virtual void setShaderProgram(ShaderProgram* shaderProgram){
 			this->shaderProgram = shaderProgram;
 		}
+
 	protected:
 		bool visiable = true;
 		ShaderProgram* shaderProgram;

@@ -14,6 +14,8 @@ namespace oglt {
 #define OGLT_RENDER_SELF 0x0001
 #define OGLT_RENDER_CHILDREN 0x002
 
+#define OGLT_INVALID_SHADER_ID 0xFFFF
+
 	typedef unsigned int uint;
 
 	enum OGLT_BUTTON {
