@@ -48,19 +48,23 @@ void FlyingCamera::rotateWithMouse()
 	float deltaX = (float)(iCentX - x)*sensitivity;
 	float deltaY = (float)(iCentY - y)*sensitivity;
 
-	vView -= localTransform.position;
-	vView = glm::rotate(vView, deltaX, glm::vec3(0.0f, 1.0f, 0.0f));
-	vView += localTransform.position;
-
-	glm::vec3 vAxis = glm::cross(vView - localTransform.position, vUp);
-	vAxis = glm::normalize(vAxis);
-	float fAngle = deltaY;
-	float fNewAngle = fAngle + getAngleX();
-	if (fNewAngle > -89.80f && fNewAngle < 89.80f)
-	{
+	if (abs(deltaX) > sensitivity * 1.2f) {
 		vView -= localTransform.position;
-		vView = glm::rotate(vView, deltaY, vAxis);
+		vView = glm::rotate(vView, deltaX, glm::vec3(0.0f, 1.0f, 0.0f));
 		vView += localTransform.position;
+	}
+
+	if (abs(deltaY) > sensitivity * 1.2f) {
+		glm::vec3 vAxis = glm::cross(vView - localTransform.position, vUp);
+		vAxis = glm::normalize(vAxis);
+		float fAngle = deltaY;
+		float fNewAngle = fAngle + getAngleX();
+		if (fNewAngle > -89.80f && fNewAngle < 89.80f)
+		{
+			vView -= localTransform.position;
+			vView = glm::rotate(vView, deltaY, vAxis);
+			vView += localTransform.position;
+		}
 	}
 
 	app->setCursor(iCentX, iCentY);
