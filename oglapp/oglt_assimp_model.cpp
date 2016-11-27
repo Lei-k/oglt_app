@@ -8,28 +8,6 @@
 
 using namespace oglt;
 
-/*-----------------------------------------------
-
-Name:	getDirectoryPath
-
-Params:	sFilePath - guess ^^
-
-Result: Returns directory name only from filepath.
-
-/*---------------------------------------------*/
-
-string getDirectoryPath(string sFilePath)
-{
-	// Get directory path
-	string sDirectory = "";
-	RFOR(i, ESZ(sFilePath) - 1)if (sFilePath[i] == '\\' || sFilePath[i] == '/')
-	{
-		sDirectory = sFilePath.substr(0, i + 1);
-		break;
-	}
-	return sDirectory;
-}
-
 AssimpModel::AssimpModel()
 {
 	loaded = false;
@@ -58,7 +36,7 @@ bool AssimpModel::loadModelFromFile(char* sFilePath)
 
 	if (!scene)
 	{
-		fprintf(stderr, "Couldn't load model %d", sFilePath);
+		fprintf(stderr, "Couldn't load model %s", sFilePath);
 		return false;
 	}
 
@@ -164,21 +142,6 @@ void AssimpModel::finalizeVBO()
 
 /*-----------------------------------------------
 
-Name:	bindModelsVAO
-
-Params: none
-
-Result: Binds VAO of models with their VBO.
-
-/*---------------------------------------------*/
-
-void AssimpModel::bindModelsVAO()
-{
-	glBindVertexArray(vao);
-}
-
-/*-----------------------------------------------
-
 Name:	render
 
 Params: int render type
@@ -189,8 +152,8 @@ Result: Guess what it does ^^.
 
 void AssimpModel::render(int renderType)
 {
-	bindModelsVAO();
 	if (!loaded)return;
+	glBindVertexArray(vao);
 	int iNumMeshes = ESZ(meshSizes);
 	FOR(i, iNumMeshes)
 	{

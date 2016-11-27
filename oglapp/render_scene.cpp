@@ -8,6 +8,7 @@
 #include "oglt_skybox.h"
 #include "oglt_camera.h"
 #include "oglt_assimp_model.h"
+#include "oglt_fbx_model.h"
 #include "oglt_scene_object.h"
 
 using namespace oglt;
@@ -20,6 +21,7 @@ Skybox skybox;
 FlyingCamera camera;
 SceneObject worldTree, cityObj, rObj;
 AssimpModel cityModel, rModel;
+FbxModel testModel;
 
 Shader ortho, font, vtMain, fgMain, dirLight;
 ShaderProgram spFont, spMain;
@@ -67,6 +69,12 @@ void scene::initScene(oglt::IApp* app) {
 	worldTree.addChild(&cityObj);
 	cityObj.addChild(&rObj);
 
+	FbxModel::initialize();
+	
+	// Test the fbx model loading
+	// developing...
+	//testModel.load("data/models/TdaJKStyle/TdaJKStyle.fbx");
+
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
 }
@@ -83,7 +91,7 @@ void scene::renderScene(oglt::IApp* app) {
 	spMain.setUniform("sunLight.vColor", vec3(1.0f, 1.0f, 1.0f));
 	spMain.setUniform("sunLight.vDirection", vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0));
 	spMain.setUniform("sunLight.fAmbient", 1.0f);
-	spMain.setUniform("vColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	spMain.setUniform("vColor", vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	worldTree.render(OGLT_RENDER_CHILDREN);
 
@@ -95,7 +103,10 @@ void scene::renderScene(oglt::IApp* app) {
 	uint w, h;
 	app->getViewport(w, h);
 	ftFont.printFormatted(20, h - 35, 24, "FPS: %d", app->getFps());
-	ftFont.print("OgltApp : https://github.com/Lei-k/oglt_app", 20, 30);
+	ftFont.printFormatted(20, h - 65, 20, "X: %.2f", camera.getWorldTransform()->position.x);
+	ftFont.printFormatted(20, h - 88, 20, "Y: %.2f", camera.getWorldTransform()->position.y);
+	ftFont.printFormatted(20, h - 111, 20, "Z: %.2f", camera.getWorldTransform()->position.z);
+	ftFont.print("OgltApp : https://github.com/Lei-k/oglt_app", 10, 15, 20);
 
 	glEnable(GL_DEPTH_TEST);
 

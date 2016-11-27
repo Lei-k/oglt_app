@@ -10,6 +10,7 @@
 #include <vector>
 #include <time.h>
 #include <math.h>
+#include <map>
 
 #define FOR(q,n) for(int q=0;q<n;q++)
 #define SFOR(q,s,e) for(int q=s;q<=e;q++)
@@ -23,3 +24,5 @@
 #define SAFE_DELETE(p) if (p) { delete p; p = NULL; }
 
 using namespace std;
+
+string getDirectoryPath(string sFilePath);

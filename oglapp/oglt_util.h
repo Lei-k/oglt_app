@@ -14,7 +14,8 @@ namespace oglt {
 #define OGLT_RENDER_SELF 0x0001
 #define OGLT_RENDER_CHILDREN 0x002
 
-#define OGLT_INVALID_SHADER_ID 0xFFFF
+#define OGLT_INVALID_SHADER_ID 0xFFFFFFFF
+#define OGLT_INVALID_MATERIAL_ID 0xFFFFFFFF
 
 	typedef unsigned int uint;
 

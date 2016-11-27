@@ -6,12 +6,6 @@
 #include "oglt_texture.h"
 
 namespace oglt {
-	class Material
-	{
-	public:
-		int iTexture;
-	};
-
 	class AssimpModel : public IRenderable
 	{
 	public:
@@ -20,7 +14,6 @@ namespace oglt {
 		virtual void render(int renderType = OGLT_RENDER_SELF);
 		AssimpModel();
 	private:
-		void bindModelsVAO();
 		void finalizeVBO();
 
 		bool loaded;
