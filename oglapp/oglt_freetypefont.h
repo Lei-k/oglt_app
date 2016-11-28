@@ -6,6 +6,7 @@
 
 #include "oglt_shader.h"
 #include "oglt_texture.h"
+#include "oglt_irenderable.h"
 #include "oglt_vbo.h"
 
 namespace oglt {
@@ -18,7 +19,7 @@ namespace oglt {
 
 	********************************/
 
-	class FreeTypeFont
+	class FreeTypeFont : public IRenderable
 	{
 	public:
 		bool loadFont(string sFile, int iPXSize);
@@ -31,10 +32,16 @@ namespace oglt {
 
 		void deleteFont();
 
-		void setShaderProgram(ShaderProgram* a_shShaderProgram);
+		virtual void render(int renderType = OGLT_RENDER_SELF);
 
 		FreeTypeFont();
 	private:
+		struct TextField {
+			string text;
+			int size;
+			int x, y;
+		};
+
 		void createChar(int iIndex);
 
 		Texture tCharTextures[256];
@@ -47,9 +54,9 @@ namespace oglt {
 
 		uint vao;
 		VertexBufferObject vboData;
+		vector<TextField> textFields;
 
 		FT_Library ftLib;
 		FT_Face ftFace;
-		ShaderProgram* shaderProgram;
 	};
 }

@@ -152,7 +152,8 @@ Result: Guess what it does ^^.
 
 void AssimpModel::render(int renderType)
 {
-	if (!loaded)return;
+	if (!loaded) return;
+
 	glBindVertexArray(vao);
 	int iNumMeshes = ESZ(meshSizes);
 	FOR(i, iNumMeshes)

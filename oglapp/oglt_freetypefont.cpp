@@ -180,38 +180,12 @@ with specified pixel size.
 
 void FreeTypeFont::print(string sText, int x, int y, int iPXSize)
 {
-	if (!loaded)return;
-
-	glBindVertexArray(vao);
-	shaderProgram->setUniform("gSampler", 0);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	int iCurX = x, iCurY = y;
-	if (iPXSize == -1)iPXSize = iLoadedPixelSize;
-	float fScale = float(iPXSize) / float(iLoadedPixelSize);
-	FOR(i, ESZ(sText))
-	{
-		if (sText[i] == '\n')
-		{
-			iCurX = x;
-			iCurY -= iNewLine*iPXSize / iLoadedPixelSize;
-			continue;
-		}
-		int iIndex = int(sText[i]);
-		iCurX += iBearingX[iIndex] * iPXSize / iLoadedPixelSize;
-		if (sText[i] != ' ')
-		{
-			tCharTextures[iIndex].bindTexture();
-			glm::mat4 mModelView = glm::translate(glm::mat4(1.0f), glm::vec3(float(iCurX), float(iCurY), 0.0f));
-			mModelView = glm::scale(mModelView, glm::vec3(fScale));
-			shaderProgram->setUniform("matrices.modelViewMatrix", mModelView);
-			// Draw character
-			glDrawArrays(GL_TRIANGLE_STRIP, iIndex * 4, 4);
-		}
-
-		iCurX += (iAdvX[iIndex] - iBearingX[iIndex])*iPXSize / iLoadedPixelSize;
-	}
-	glDisable(GL_BLEND);
+	TextField textField;
+	textField.text = sText;
+	textField.size = iPXSize;
+	textField.x = x;
+	textField.y = y;
+	textFields.push_back(textField);
 }
 
 /*-----------------------------------------------
@@ -254,17 +228,43 @@ void FreeTypeFont::deleteFont()
 	glDeleteVertexArrays(1, &vao);
 }
 
-/*-----------------------------------------------
-
-Name:	SetShaderProgram
-
-Params:	a_shShaderProgram - shader program
-
-Result:	Sets shader program that font uses.
-
-/*---------------------------------------------*/
-
-void FreeTypeFont::setShaderProgram(ShaderProgram* a_shShaderProgram)
+void FreeTypeFont::render(int renderType)
 {
-	shaderProgram = a_shShaderProgram;
+	if (!loaded)return;
+
+	glBindVertexArray(vao);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	FOR(i, ESZ(textFields)) {
+		int iCurX = textFields[i].x, iCurY = textFields[i].y;
+		int iPXSize = textFields[i].size;
+		string sText = textFields[i].text;
+		if (iPXSize == -1)iPXSize = iLoadedPixelSize;
+		float fScale = float(iPXSize) / float(iLoadedPixelSize);
+		FOR(j, ESZ(sText))
+		{
+			if (sText[j] == '\n')
+			{
+				iCurX = textFields[i].x;
+				iCurY -= iNewLine*iPXSize / iLoadedPixelSize;
+				continue;
+			}
+			int iIndex = int(sText[j]);
+			iCurX += iBearingX[iIndex] * iPXSize / iLoadedPixelSize;
+			if (sText[j] != ' ')
+			{
+				tCharTextures[iIndex].bindTexture();
+				glm::mat4 mModelView = glm::translate(glm::mat4(1.0f), glm::vec3(float(iCurX), float(iCurY), 0.0f));
+				mModelView = glm::scale(mModelView, glm::vec3(fScale));
+				shaderProgram->setUniform("matrices.modelViewMatrix", mModelView);
+				// Draw character
+				glDrawArrays(GL_TRIANGLE_STRIP, iIndex * 4, 4);
+			}
+
+			iCurX += (iAdvX[iIndex] - iBearingX[iIndex])*iPXSize / iLoadedPixelSize;
+		}
+	}
+	glDisable(GL_BLEND);
+	textFields.clear();
 }

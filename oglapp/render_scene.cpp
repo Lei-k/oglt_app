@@ -107,6 +107,7 @@ void scene::renderScene(oglt::IApp* app) {
 	ftFont.printFormatted(20, h - 88, 20, "Y: %.2f", camera.getWorldTransform()->position.y);
 	ftFont.printFormatted(20, h - 111, 20, "Z: %.2f", camera.getWorldTransform()->position.z);
 	ftFont.print("OgltApp : https://github.com/Lei-k/oglt_app", 10, 15, 20);
+	ftFont.render();
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -125,4 +126,6 @@ void scene::releaseScene(oglt::IApp* app) {
 	vtMain.deleteShader();
 	fgMain.deleteShader();
 	dirLight.deleteShader();
+
+	FbxModel::destroyManager();
 }

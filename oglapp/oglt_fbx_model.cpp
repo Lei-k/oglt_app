@@ -99,9 +99,14 @@ bool FbxModel::loadFromScene(FbxScene * scene)
 	}
 
 	traverseNode(rootNode, vertices, uvs, normals);
+
+	cout << "size: " << vertices.size() << endl;
+	FOR(i, vertices.size()) {
+		cout << "vertex " << i << " : " << vertices[i].x << ", " << vertices[i].y << ", " << vertices[i].z << endl;
+	}
 }
 
-void FbxModel::traverseNode(FbxNode * parentNode, vector<vec3>& vertices, vector<vec2>& vus, vector<vec3>& normals)
+void FbxModel::traverseNode(FbxNode * parentNode, vector<vec3>& vertices, vector<vec2>& uvs, vector<vec3>& normals)
 {
 	FOR(i, parentNode->GetChildCount()) {
 		FbxNode* childNode = parentNode->GetChild(i);
@@ -115,7 +120,7 @@ void FbxModel::traverseNode(FbxNode * parentNode, vector<vec3>& vertices, vector
 			vertices.push_back(vertex);
 		}
 
-		
+		traverseNode(childNode, vertices, uvs, normals);
 	}
 }
 
