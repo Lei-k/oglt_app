@@ -26,17 +26,21 @@ namespace oglt {
 		void processLight(FbxNode* node);
 		void processCamera(FbxNode* node);
 
-		void readVertex(FbxMesh* mesh, uint ctrlPointIndex, glm::vec3* outVertex);
-		void readColor(FbxMesh* mesh, uint ctrlPointIndex, uint vertexCounter, glm::vec4* outColor);
-		void readUV(FbxMesh* mesh, uint ctrlPointIndex, uint textureUVIndex, uint uvLayer, glm::vec2* outUV);
-		void readNormal(FbxMesh* mesh, uint ctrlPointIndex, uint vertexCounter, glm::vec3* outNormal);
-		void readTangent(FbxMesh* mesh, uint ctrlPointIndex, uint vertexCounter, glm::vec3* outTangent);
+		void readVertex(FbxMesh* mesh, int ctrlPointIndex, glm::vec3* outVertex);
+		void readColor(FbxMesh* mesh, int ctrlPointIndex, int vertexCounter, glm::vec4* outColor);
+		void readUV(FbxMesh* mesh, int ctrlPointIndex, int textureUVIndex, int uvLayer, glm::vec2* outUV);
+		void readNormal(FbxMesh* mesh, int ctrlPointIndex, int vertexCounter, glm::vec3* outNormal);
+		void readTangent(FbxMesh* mesh, int ctrlPointIndex, int vertexCounter, glm::vec3* outTangent);
+
+		void finalizeVBO();
 
 		struct MeshEntry {
-			uint startIndex;
-			uint size;
-			uint materialIndex = OGLT_INVALID_MATERIAL_ID;
+			int startIndex;
+			int size;
+			int materialIndex = OGLT_INVALID_MATERIAL_ID;
 		};
+
+#define MAX_UV_CHANNEL 5
 
 		bool loaded;
 		vector<MeshEntry> meshs;
@@ -46,9 +50,7 @@ namespace oglt {
 		VertexBufferObject vertices;
 		VertexBufferObject colors;
 		VertexBufferObject normals;
-		VertexBufferObject uv0s;
-		VertexBufferObject uv1s;
-		VertexBufferObject uv2s;
+		VertexBufferObject uvs[MAX_UV_CHANNEL];
 
 		static FbxManager* manager;
 		FbxImporter* importer;

@@ -19,12 +19,12 @@ using namespace glm;
 FreeTypeFont ftFont;
 Skybox skybox;
 FlyingCamera camera;
-SceneObject worldTree, cityObj, rObj;
+SceneObject worldTree, cityObj, rObj, testObj;
 AssimpModel cityModel, rModel;
 FbxModel testModel;
 
-Shader ortho, font, vtMain, fgMain, dirLight;
-ShaderProgram spFont, spMain;
+Shader ortho, font, vtMain, fgMain, dirLight, vtFbx, fgFbx;
+ShaderProgram spFont, spMain, spFbx;
 
 void scene::initScene(oglt::IApp* app) {
 	glClearColor(0.1f, 0.3f, 0.7f, 1.0f);
@@ -34,6 +34,8 @@ void scene::initScene(oglt::IApp* app) {
 	vtMain.loadShader("data/shaders/main_shader.vert", GL_VERTEX_SHADER);
 	fgMain.loadShader("data/shaders/main_shader.frag", GL_FRAGMENT_SHADER);
 	dirLight.loadShader("data/shaders/dirLight.frag", GL_FRAGMENT_SHADER);
+	vtFbx.loadShader("data/shaders/fbx_shader.vert", GL_VERTEX_SHADER);
+	fgFbx.loadShader("data/shaders/fbx_shader.frag", GL_FRAGMENT_SHADER);
 
 	spFont.createProgram();
 	spFont.addShaderToProgram(&ortho);
@@ -45,6 +47,12 @@ void scene::initScene(oglt::IApp* app) {
 	spMain.addShaderToProgram(&dirLight);
 	spMain.addShaderToProgram(&fgMain);
 	spMain.linkProgram();
+
+	spFbx.createProgram();
+	spFbx.addShaderToProgram(&vtFbx);
+	spFbx.addShaderToProgram(&dirLight);
+	spFbx.addShaderToProgram(&fgFbx);
+	spFbx.linkProgram();
 
 	ftFont.loadFont("data/fonts/SugarpunchDEMO.otf", 32);
 	ftFont.setShaderProgram(&spFont);
@@ -67,13 +75,15 @@ void scene::initScene(oglt::IApp* app) {
 	
 	worldTree.addChild(&camera);
 	worldTree.addChild(&cityObj);
-	cityObj.addChild(&rObj);
+	//cityObj.addChild(&rObj);
 
 	FbxModel::initialize();
 	
 	// Test the fbx model loading
 	// developing...
 	//testModel.load("data/models/TdaJKStyle/TdaJKStyle.fbx");
+	//testObj.addRenderObj(&testModel);
+	//testObj.setShaderProgram(&spFbx);
 
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
@@ -94,6 +104,16 @@ void scene::renderScene(oglt::IApp* app) {
 	spMain.setUniform("vColor", vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	worldTree.render(OGLT_RENDER_CHILDREN);
+
+	spFbx.useProgram();
+	spFbx.setUniform("matrices.viewMatrix", camera.look());
+	spFbx.setUniform("matrices.projMatrix", app->getProj());
+	spFbx.setUniform("sunLight.vColor", vec3(1.0f, 1.0f, 1.0f));
+	spFbx.setUniform("sunLight.vDirection", vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0));
+	spFbx.setUniform("sunLight.fAmbient", 1.0f);
+
+	testObj.calcNodeHeirarchyTransform();
+	//testObj.render();
 
 	spFont.useProgram();
 	spFont.setUniform("matrices.projMatrix", app->getOrth());
@@ -125,6 +145,10 @@ void scene::releaseScene(oglt::IApp* app) {
 	spMain.deleteProgram();
 	vtMain.deleteShader();
 	fgMain.deleteShader();
+
+	spFbx.deleteProgram();
+	vtFbx.deleteShader();
+	fgFbx.deleteShader();
 	dirLight.deleteShader();
 
 	FbxModel::destroyManager();
