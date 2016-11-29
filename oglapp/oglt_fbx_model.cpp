@@ -31,6 +31,10 @@ bool FbxModel::initialize()
 	FbxIOSettings* ios = FbxIOSettings::Create(manager, IOSROOT);
 	manager->SetIOSettings(ios);
 
+	//Load plugins from the executable directory (optional)
+	FbxString path = FbxGetApplicationDirectory();
+	manager->LoadPluginsDirectory(path.Buffer());
+
 	return true;
 }
 
@@ -79,6 +83,9 @@ bool FbxModel::load(const string & fileName)
 		fprintf(stderr, "Error: Unable importer to scene.\n");
 		return false;
 	}
+	FbxGeometryConverter geoConverter(manager);
+	geoConverter.Triangulate(scene, true);
+
 	importer->Destroy();
 	importer = NULL;
 
@@ -89,38 +96,269 @@ bool FbxModel::load(const string & fileName)
 
 bool FbxModel::loadFromScene(FbxScene * scene)
 {
-	vector<vec3> vertices;
-	vector<vec2> uvs;
-	vector<vec3> normals;
 	FbxNode* rootNode = scene->GetRootNode();
 
 	if (rootNode == NULL) {
 		return false;
 	}
 
-	traverseNode(rootNode, vertices, uvs, normals);
-
-	cout << "size: " << vertices.size() << endl;
-	FOR(i, vertices.size()) {
-		cout << "vertex " << i << " : " << vertices[i].x << ", " << vertices[i].y << ", " << vertices[i].z << endl;
-	}
+	vertices.createVBO();
+	colors.createVBO();
+	normals.createVBO();
+	uv0s.createVBO();
+	uv1s.createVBO();
+	uv2s.createVBO();
+	processNode(rootNode);
 }
 
 void FbxModel::traverseNode(FbxNode * parentNode, vector<vec3>& vertices, vector<vec2>& uvs, vector<vec3>& normals)
 {
 	FOR(i, parentNode->GetChildCount()) {
 		FbxNode* childNode = parentNode->GetChild(i);
-		if (childNode == NULL) continue;
-		FbxMesh* mesh = childNode->GetMesh();
-		if (mesh == NULL) continue;
-		FOR(j, mesh->GetControlPointsCount()) {
-			FbxVector4 coord = mesh->GetControlPointAt(j);
-			vec3 vertex; vertex[0] = coord[0];
-			vertex[1] = coord[1]; vertex[2] = coord[2];
-			vertices.push_back(vertex);
+		traverseNode(childNode, vertices, uvs, normals);
+	}
+}
+
+void FbxModel::processNode(FbxNode * node)
+{
+	if (node->GetNodeAttribute()) {
+		switch (node->GetNodeAttribute()->GetAttributeType()) {
+		case FbxNodeAttribute::eMesh:
+			processMesh(node);
+			break;
+		case FbxNodeAttribute::eSkeleton:
+			break;
+		case FbxNodeAttribute::eLight:
+			break;
+		case FbxNodeAttribute::eCamera:
+			break;
+		}
+	}
+
+	FOR(i, node->GetChildCount()) {
+		processNode(node->GetChild(i));
+	}
+}
+
+void FbxModel::processMesh(FbxNode * node)
+{
+	FbxMesh* mesh = node->GetMesh();
+	if (mesh == NULL) {
+		return;
+	}
+
+	glm::vec3 vertex[3];
+	glm::vec4 color[3];
+	glm::vec3 normal[3];
+	glm::vec3 tangent[3];
+	glm::vec2 uv[3][3];
+
+	uint vertexCounter = 0;
+
+	FOR(i, mesh->GetPolygonCount()) {
+		FOR (j, 3) {
+			uint ctrlPointIndex = mesh->GetPolygonVertex(i, j);
+
+			readVertex(mesh, ctrlPointIndex, &vertex[j]);
+
+			readColor(mesh, ctrlPointIndex, vertexCounter, &color[j]);
+
+			FOR(k, 3) {
+				readUV(mesh, ctrlPointIndex, mesh->GetTextureUVIndex(i, j), k, &(uv[j][k]));
+			}
+
+			readNormal(mesh, ctrlPointIndex, vertexCounter, &normal[j]);
+
+			readTangent(mesh, ctrlPointIndex, vertexCounter, &tangent[j]);
+
+			vertexCounter++;
+
+			vertices.addData(&vertex[j], sizeof(glm::vec3));
+			colors.addData(&color[j], sizeof(glm::vec4));
+
+		}
+	}
+}
+
+void FbxModel::processSkeleton(FbxNode * node)
+{
+}
+
+void FbxModel::processLight(FbxNode * node)
+{
+}
+
+void FbxModel::processCamera(FbxNode * node)
+{
+}
+
+void FbxModel::readVertex(FbxMesh * mesh, uint ctrlPointIndex, glm::vec3 * outVertex)
+{
+	FbxVector4 ctrlPoint = mesh->GetControlPointAt(ctrlPointIndex);
+	outVertex->x = ctrlPoint[0];
+	outVertex->y = ctrlPoint[1];
+	outVertex->z = ctrlPoint[2];
+}
+
+void FbxModel::readColor(FbxMesh * mesh, uint ctrlPointIndex, uint vertexCounter, glm::vec4 * outColor)
+{
+	if (mesh->GetElementVertexColorCount < 1) {
+		return;
+	}
+
+	FbxGeometryElementVertexColor* vertexColor = mesh->GetElementVertexColor(0);
+	switch (vertexColor->GetMappingMode()) {
+	case FbxGeometryElement::eByControlPoint:
+		switch (vertexColor->GetReferenceMode()) {
+		case FbxGeometryElement::eDirect:
+			outColor->x = vertexColor->GetDirectArray().GetAt(ctrlPointIndex).mRed;
+			outColor->y = vertexColor->GetDirectArray().GetAt(ctrlPointIndex).mGreen;
+			outColor->z = vertexColor->GetDirectArray().GetAt(ctrlPointIndex).mBlue;
+			outColor->w = vertexColor->GetDirectArray().GetAt(ctrlPointIndex).mAlpha;
+			break;
+		case FbxGeometryElement::eIndexToDirect:
+			uint id = vertexColor->GetIndexArray().GetAt(ctrlPointIndex);
+			outColor->x = vertexColor->GetDirectArray().GetAt(id).mRed;
+			outColor->y = vertexColor->GetDirectArray().GetAt(id).mGreen;
+			outColor->z = vertexColor->GetDirectArray().GetAt(id).mBlue;
+			outColor->w = vertexColor->GetDirectArray().GetAt(id).mAlpha;
+			break;
+		}
+		break;
+
+	case FbxGeometryElement::eByPolygonVertex:
+		switch (vertexColor->GetReferenceMode()) {
+		case FbxGeometryElement::eDirect:
+			outColor->x = vertexColor->GetDirectArray().GetAt(vertexCounter).mRed;
+			outColor->y = vertexColor->GetDirectArray().GetAt(vertexCounter).mGreen;
+			outColor->z = vertexColor->GetDirectArray().GetAt(vertexCounter).mBlue;
+			outColor->w = vertexColor->GetDirectArray().GetAt(vertexCounter).mAlpha;
+			break;
+		case FbxGeometryElement::eIndexToDirect:
+			uint id = vertexColor->GetIndexArray().GetAt(vertexCounter);
+			outColor->x = vertexColor->GetDirectArray().GetAt(id).mRed;
+			outColor->y = vertexColor->GetDirectArray().GetAt(id).mGreen;
+			outColor->z = vertexColor->GetDirectArray().GetAt(id).mBlue;
+			outColor->w = vertexColor->GetDirectArray().GetAt(id).mAlpha;
+			break;
+		}
+		break;
+	}
+	
+}
+
+void FbxModel::readUV(FbxMesh * mesh, uint ctrlPointIndex, uint textureUVIndex, uint uvLayer, glm::vec2 * outUV)
+{
+	if (uvLayer >= 3)
+		return;
+
+	FbxGeometryElementUV* vertexUV = mesh->GetElementUV(uvLayer);
+
+	switch (vertexUV->GetMappingMode()) {
+	case FbxGeometryElement::eByControlPoint:
+		switch (vertexUV->GetReferenceMode()) {
+		case FbxGeometryElement::eDirect:
+			outUV->x = vertexUV->GetDirectArray().GetAt(ctrlPointIndex)[0];
+			outUV->x = vertexUV->GetDirectArray().GetAt(ctrlPointIndex)[1];
+			break;
+		case FbxGeometryElement::eIndexToDirect:
+			uint id = vertexUV->GetIndexArray().GetAt(ctrlPointIndex);
+			outUV->x = vertexUV->GetDirectArray().GetAt(id)[0];
+			outUV->x = vertexUV->GetDirectArray().GetAt(id)[1];
+			break;
+		}
+		break;
+
+	case FbxGeometryElement::eByPolygonVertex:
+		switch (vertexUV->GetReferenceMode()) {
+		case FbxGeometryElement::eDirect:
+		case FbxGeometryElement::eIndexToDirect:
+			outUV->x = vertexUV->GetDirectArray().GetAt(textureUVIndex)[0];
+			outUV->y = vertexUV->GetDirectArray().GetAt(textureUVIndex)[1];
+			break;
+		}
+		break;
+	}
+}
+
+void FbxModel::readNormal(FbxMesh * mesh, uint ctrlPointIndex, uint vertexCounter, glm::vec3 * outNormal)
+{
+	if (mesh->GetElementNormalCount() < 1)
+		return;
+
+	FbxGeometryElementNormal* normal = mesh->GetElementNormal(0);
+	
+	switch (normal->GetMappingMode()) {
+	case FbxGeometryElement::eByControlPoint:
+		switch (normal->GetReferenceMode()) {
+		case FbxGeometryElement::eDirect:
+			outNormal->x = normal->GetDirectArray().GetAt(ctrlPointIndex)[0];
+			outNormal->y = normal->GetDirectArray().GetAt(ctrlPointIndex)[1];
+			outNormal->z = normal->GetDirectArray().GetAt(ctrlPointIndex)[2];
+			break;
+		case FbxGeometryElement::eIndexToDirect:
+			uint id = normal->GetIndexArray().GetAt(ctrlPointIndex);
+			outNormal->x = normal->GetDirectArray().GetAt(id)[0];
+			outNormal->y = normal->GetDirectArray().GetAt(id)[1];
+			outNormal->z = normal->GetDirectArray().GetAt(id)[2];
+			break;
 		}
 
-		traverseNode(childNode, vertices, uvs, normals);
+	case FbxGeometryElement::eByPolygonVertex:
+		switch (normal->GetReferenceMode()) {
+		case FbxGeometryElement::eDirect:
+			outNormal->x = normal->GetDirectArray().GetAt(vertexCounter)[0];
+			outNormal->y = normal->GetDirectArray().GetAt(vertexCounter)[1];
+			outNormal->z = normal->GetDirectArray().GetAt(vertexCounter)[2];
+			break;
+		case FbxGeometryElement::eIndexToDirect:
+			uint id = normal->GetIndexArray().GetAt(vertexCounter);
+			outNormal->x = normal->GetDirectArray().GetAt(id)[0];
+			outNormal->y = normal->GetDirectArray().GetAt(id)[1];
+			outNormal->z = normal->GetDirectArray().GetAt(id)[2];
+			break;
+		}
+		break;
+	}
+}
+
+void FbxModel::readTangent(FbxMesh * mesh, uint ctrlPointIndex, uint vertexCounter, glm::vec3 * outTangent)
+{
+	if (mesh->GetElementTangentCount() < 1)
+		return;
+
+	FbxGeometryElementTangent* tangent = mesh->GetElementTangent(0);
+
+	switch (tangent->GetMappingMode()) {
+	case FbxGeometryElement::eByControlPoint:
+		switch (tangent->GetReferenceMode()) {
+		case FbxGeometryElement::eDirect:
+			outTangent->x = tangent->GetDirectArray().GetAt(ctrlPointIndex)[0];
+			outTangent->y = tangent->GetDirectArray().GetAt(ctrlPointIndex)[1];
+			outTangent->z = tangent->GetDirectArray().GetAt(ctrlPointIndex)[2];
+			break;
+		case FbxGeometryElement::eIndexToDirect:
+			uint id = tangent->GetIndexArray().GetAt(ctrlPointIndex);
+			outTangent->x = tangent->GetDirectArray().GetAt(id)[0];
+			outTangent->y = tangent->GetDirectArray().GetAt(id)[1];
+			outTangent->z = tangent->GetDirectArray().GetAt(id)[2];
+			break;
+		}
+	case FbxGeometryElement::eByPolygonVertex:
+		switch (tangent->GetReferenceMode()) {
+		case FbxGeometryElement::eDirect:
+			outTangent->x = tangent->GetDirectArray().GetAt(vertexCounter)[0];
+			outTangent->y = tangent->GetDirectArray().GetAt(vertexCounter)[1];
+			outTangent->z = tangent->GetDirectArray().GetAt(vertexCounter)[2];
+			break;
+		case FbxGeometryElement::eIndexToDirect:
+			uint id = tangent->GetIndexArray().GetAt(vertexCounter);
+			outTangent->x = tangent->GetDirectArray().GetAt(id)[0];
+			outTangent->y = tangent->GetDirectArray().GetAt(id)[1];
+			outTangent->z = tangent->GetDirectArray().GetAt(id)[2];
+			break;
+		}
+		break;
 	}
 }
 
