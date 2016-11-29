@@ -1,7 +1,7 @@
 #pragma once
 
 #include "oglt_irenderable.h"
-#include "oglt_texture.h"
+#include "oglt_material.h"
 #include "oglt_vbo.h"
 
 #include <fbxsdk.h>
@@ -35,16 +35,16 @@ namespace oglt {
 		void finalizeVBO();
 
 		struct MeshEntry {
-			int startIndex;
-			int size;
-			int materialIndex = OGLT_INVALID_MATERIAL_ID;
+			uint startIndex;
+			uint size;
+			vector<uint> materialIndices;
 		};
 
 #define MAX_UV_CHANNEL 5
 
 		bool loaded;
 		vector<MeshEntry> meshs;
-		vector<Texture> textures;
+		vector<Material> materials;
 
 		uint vao;
 		VertexBufferObject vertices;

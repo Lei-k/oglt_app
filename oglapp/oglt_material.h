@@ -7,7 +7,7 @@
 namespace oglt {
 	enum MaterialParam {
 		AMBIENT_COLOR, DIFFUSE_COLOR, SPECULAR_COLOR, EMISSIVE_COLOR,
-		TRANSPARENCY_FACTORY, SHININESS_FACTORY, REFLECTION_FACTORY
+		TRANSPARENCY_Factor, SHININESS_Factor, REFLECTION_Factor
 	};
 
 	class Material {
@@ -16,26 +16,27 @@ namespace oglt {
 		~Material();
 
 		void setParam(MaterialParam param, glm::vec3 color);
-		void setParam(MaterialParam param, float factory);
+		void setParam(MaterialParam param, float Factor);
 
 		glm::vec3* getColorParam(MaterialParam param);
-		float getFactoryParam(MaterialParam param);
+		float getFactorParam(MaterialParam param);
+		void addTexture(Texture& texture);
 	private:
 		glm::vec3 ambientColor;
 		glm::vec3 diffuseColor;
 		glm::vec3 specularColor;
 		glm::vec3 emissiveColor;
-		float transparencyFactory;
-		float shininessFactory;
-		float reflectionFactory;
+		float transparencyFactor;
+		float shininessFactor;
+		float reflectionFactor;
 
 		bool enableAmbientColor;
 		bool enableDiffuseColor;
 		bool enableSpecularColor;
 		bool enableEmissiveColor;
-		bool enableTransparencyFactory;
-		bool enableShininessFactory;
-		bool enableReflectionFactory;
+		bool enableTransparencyFactor;
+		bool enableShininessFactor;
+		bool enableReflectionFactor;
 
 		vector<Texture> textures;
 	};

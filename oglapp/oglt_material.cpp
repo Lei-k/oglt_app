@@ -8,9 +8,9 @@ Material::Material()
 	enableDiffuseColor = false;
 	enableSpecularColor = false;
 	enableEmissiveColor = false;
-	enableTransparencyFactory = false;
-	enableShininessFactory = false;
-	enableReflectionFactory = false;
+	enableTransparencyFactor = false;
+	enableShininessFactor = false;
+	enableReflectionFactor = false;
 }
 
 Material::~Material()
@@ -42,23 +42,23 @@ void Material::setParam(MaterialParam param, glm::vec3 color)
 	}
 }
 
-void Material::setParam(MaterialParam param, float factory)
+void Material::setParam(MaterialParam param, float Factor)
 {
 	switch (param) {
-	case TRANSPARENCY_FACTORY:
-		transparencyFactory = factory;
-		enableTransparencyFactory = true;
+	case TRANSPARENCY_Factor:
+		transparencyFactor = Factor;
+		enableTransparencyFactor = true;
 		break;
-	case SHININESS_FACTORY:
-		shininessFactory = factory;
-		enableShininessFactory = true;
+	case SHININESS_Factor:
+		shininessFactor = Factor;
+		enableShininessFactor = true;
 		break;
-	case REFLECTION_FACTORY:
-		reflectionFactory = factory;
-		enableReflectionFactory = true;
+	case REFLECTION_Factor:
+		reflectionFactor = Factor;
+		enableReflectionFactor = true;
 		break;
 	default:
-		fprintf(stderr, "Error: Use undefined factory\n");
+		fprintf(stderr, "Error: Use undefined Factor\n");
 	}
 }
 
@@ -88,25 +88,30 @@ glm::vec3 * oglt::Material::getColorParam(MaterialParam param)
 	return nullptr;
 }
 
-float oglt::Material::getFactoryParam(MaterialParam param)
+float Material::getFactorParam(MaterialParam param)
 {
 	switch (param) {
-	case TRANSPARENCY_FACTORY:
-		if (enableTransparencyFactory)
-			return transparencyFactory;
+	case TRANSPARENCY_Factor:
+		if (enableTransparencyFactor)
+			return transparencyFactor;
 		break;
-	case SHININESS_FACTORY:
-		if (enableShininessFactory)
-			return shininessFactory;
+	case SHININESS_Factor:
+		if (enableShininessFactor)
+			return shininessFactor;
 		break;
-	case REFLECTION_FACTORY:
-		if (enableReflectionFactory)
-			return reflectionFactory;
+	case REFLECTION_Factor:
+		if (enableReflectionFactor)
+			return reflectionFactor;
 		break;
 	default:
-		fprintf(stderr, "Error: Use undefined factory\n");
+		fprintf(stderr, "Error: Use undefined Factor\n");
 	}
-	fprintf(stderr, "Error: Use unenable factory\n");
+	fprintf(stderr, "Error: Use unenable Factor\n");
 	return 0.0f;
+}
+
+void Material::addTexture(Texture& texture)
+{
+	textures.push_back(texture);
 }
 

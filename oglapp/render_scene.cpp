@@ -83,9 +83,10 @@ void scene::initScene(oglt::IApp* app) {
 	
 	// Test the fbx model loading
 	// developing...
-	//testModel.load("data/models/TdaJKStyle/TdaJKStyle.fbx");
-	//testObj.addRenderObj(&testModel);
-	//testObj.setShaderProgram(&spFbx);
+	testModel.load("data/models/TdaJKStyle/TdaJKStyle.fbx");
+	testObj.addRenderObj(&testModel);
+	testObj.setShaderProgram(&spFbx);
+	testObj.getLocalTransform()->position = vec3(0.0f, 50.0f, 0.0f);
 
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
@@ -115,7 +116,7 @@ void scene::renderScene(oglt::IApp* app) {
 	spFbx.setUniform("sunLight.fAmbient", 1.0f);
 
 	testObj.calcNodeHeirarchyTransform();
-	//testObj.render();
+	testObj.render();
 
 	spFont.useProgram();
 	spFont.setUniform("matrices.projMatrix", app->getOrth());

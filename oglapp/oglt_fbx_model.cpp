@@ -97,6 +97,7 @@ bool FbxModel::load(const string & fileName)
 	cout << "colors size: " << colors.getCurrentSize() / sizeof(glm::vec4) << endl;
 	cout << "uv0s size: " << uvs[0].getCurrentSize() / sizeof(glm::vec2) << endl;
 	cout << "normals size: " << normals.getCurrentSize() / sizeof(glm::vec3) << endl;
+	cout << "mesh size: " << meshs.size() << endl;
 
 	finalizeVBO();
 
@@ -163,6 +164,9 @@ void FbxModel::processMesh(FbxNode * node)
 	glm::vec3 tangent[3];
 	glm::vec2 uv[3][MAX_UV_CHANNEL];
 
+	MeshEntry meshEntry;
+	meshEntry.startIndex = vertices.getCurrentSize() / sizeof(glm::vec3);
+
 	int vertexCounter = 0;
 
 	FOR(i, mesh->GetPolygonCount()) {
@@ -191,6 +195,8 @@ void FbxModel::processMesh(FbxNode * node)
 			normals.addData(&normal[j], sizeof(glm::vec3));
 		}
 	}
+	meshEntry.size = vertices.getCurrentSize() / sizeof(glm::vec3) - meshEntry.startIndex;
+	meshs.push_back(meshEntry);
 }
 
 void FbxModel::processSkeleton(FbxNode * node)
@@ -426,5 +432,8 @@ void FbxModel::render(int renderType)
 		return;
 
 	glBindVertexArray(vao);
-	glDrawArrays(GL_TRIANGLES, 0, vertices.getCurrentSize() / sizeof(glm::vec3));
+	FOR(i, ESZ(meshs)) {
+		glDrawArrays(GL_TRIANGLES, meshs[i].startIndex, meshs[i].size);
+	}
+	
 }
