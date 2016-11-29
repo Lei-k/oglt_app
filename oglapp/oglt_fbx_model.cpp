@@ -34,7 +34,7 @@ bool FbxModel::initialize()
 	//Load plugins from the executable directory (optional)
 	FbxString path = FbxGetApplicationDirectory();
 	manager->LoadPluginsDirectory(path.Buffer());
-
+	
 	return true;
 }
 

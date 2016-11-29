@@ -61,7 +61,7 @@ void scene::initScene(oglt::IApp* app) {
 	skybox.setShaderProgram(&spMain);
 	skybox.getLocalTransform()->scale = vec3(10.0f, 10.0f, 10.0f);
 
-	camera = FlyingCamera(app, vec3(0.0f, 10.0f, 20.0f), vec3(0.0f, 10.0f, 18.0f), vec3(0.0f, 1.0f, 0.0f), 50.0f, 0.01f);
+	camera = FlyingCamera(app, vec3(84.0f, 138.0f, 31.0f), vec3(0.0f, 10.0f, 18.0f), vec3(0.0f, 1.0f, 0.0f), 50.0f, 0.01f);
 	camera.setMovingKeys('w', 's', 'a', 'd');
 	camera.addChild(&skybox);
 
@@ -72,10 +72,12 @@ void scene::initScene(oglt::IApp* app) {
 	rModel.loadModelFromFile("data/models/R/R.obj");
 	rObj.addRenderObj(&rModel);
 	rObj.setShaderProgram(&spMain);
+	rObj.getLocalTransform()->position = vec3(292.0f, 130.0f, -180.0f);
+	rObj.getLocalTransform()->scale = vec3(40.0f, 40.0f, 40.0f);
 	
 	worldTree.addChild(&camera);
 	worldTree.addChild(&cityObj);
-	//cityObj.addChild(&rObj);
+	cityObj.addChild(&rObj);
 
 	FbxModel::initialize();
 	
