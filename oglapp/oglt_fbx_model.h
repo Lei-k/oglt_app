@@ -2,6 +2,7 @@
 
 #include "oglt_irenderable.h"
 #include "oglt_material.h"
+#include "oglt_mesh.h"
 #include "oglt_vbo.h"
 
 #include <fbxsdk.h>
@@ -19,7 +20,6 @@ namespace oglt {
 		virtual void render(int renderType = OGLT_RENDER_SELF);
 	private:
 		bool loadFromScene(FbxScene* scene);
-		void traverseNode(FbxNode* parentNode, vector<glm::vec3>& vertices, vector<glm::vec2>& vus, vector<glm::vec3>& normals);
 		void processNode(FbxNode* node);
 		void processMesh(FbxNode* node);
 		void processSkeleton(FbxNode* node);
@@ -32,19 +32,17 @@ namespace oglt {
 		void readNormal(FbxMesh* mesh, int ctrlPointIndex, int vertexCounter, glm::vec3* outNormal);
 		void readTangent(FbxMesh* mesh, int ctrlPointIndex, int vertexCounter, glm::vec3* outTangent);
 
-		void finalizeVBO();
+		void connectMtlToMesh(FbxMesh* fbxMesh, Mesh* ogltMesh);
+		void loadMaterial(FbxMesh* mesh, Mesh* ogltMesh);
+		void loadMaterialAttribute(FbxSurfaceMaterial* surfaceMaterial, Material* outMaterial);
+		void loadMaterialTexture(FbxSurfaceMaterial* surfaceMaterial, Material* outMaterial);
 
-		struct MeshEntry {
-			uint startIndex;
-			uint size;
-			uint materialIndex;
-		};
+		void finalizeVBO();
 
 #define MAX_UV_CHANNEL 5
 
 		bool loaded;
-		vector<MeshEntry> meshs;
-		vector<Material> materials;
+		vector<Mesh> meshs;
 
 		uint vao;
 		VertexBufferObject vertices;

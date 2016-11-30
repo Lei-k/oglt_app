@@ -144,9 +144,10 @@ rotating.
 
 /*---------------------------------------------*/
 
-void FlyingCamera::update()
+void FlyingCamera::update(int updateMode)
 {
-	rotateWithMouse();
+	if(updateMode & OGLT_UPDATE_CAMERA_ROTATE)
+		rotateWithMouse();
 
 	// Get view direction
 	glm::vec3 vMove = vView - localTransform.position;

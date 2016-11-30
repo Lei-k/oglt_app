@@ -12,7 +12,7 @@ namespace oglt {
 			float sensitivity; // How many degrees to rotate per pixel moved by mouse (nice value is 0.10)
 
 								// Main functions
-			void update();
+			void update(int updateMode = OGLT_UPDATEA_CAMERA_WALK | OGLT_UPDATE_CAMERA_ROTATE);
 			glm::mat4* look();
 
 			void setMovingKeys(int a_iForw, int a_iBack, int a_iLeft, int a_iRight);

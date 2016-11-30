@@ -4,13 +4,15 @@ using namespace oglt;
 
 Material::Material()
 {
-	enableAmbientColor = false;
-	enableDiffuseColor = false;
-	enableSpecularColor = false;
-	enableEmissiveColor = false;
+	enableAmbient = false;
+	enableDiffuse = false;
+	enableSpecular = false;
+	enableEmissive = false;
 	enableTransparencyFactor = false;
 	enableShininessFactor = false;
 	enableReflectionFactor = false;
+
+	shaderProgram = NULL;
 }
 
 Material::~Material()
@@ -18,100 +20,127 @@ Material::~Material()
 
 }
 
-void Material::setParam(MaterialParam param, glm::vec3 color)
+void Material::setColorParam(MaterialParam param, glm::vec3& color)
 {
 	switch (param) {
-	case AMBIENT_COLOR:
-		ambientColor = color;
-		enableAmbientColor = true;
+	case AMBIENT:
+		ambient = color;
+		enableAmbient = true;
 		break;
-	case DIFFUSE_COLOR:
-		diffuseColor = color;
-		enableDiffuseColor = true;
+	case DIFFUSE:
+		diffuse = color;
+		enableDiffuse = true;
 		break;
-	case SPECULAR_COLOR:
-		specularColor = color;
-		enableSpecularColor = true;
+	case SPECULAR:
+		specular = color;
+		enableSpecular = true;
 		break;
-	case EMISSIVE_COLOR:
-		emissiveColor = color;
-		enableEmissiveColor = true;
+	case EMISSIVE:
+		emissive = color;
+		enableEmissive = true;
 		break;
 	default:
-		fprintf(stderr, "Error: Use undefind color\n");
+		fprintf(stderr, "Error: Use undefind \n");
 	}
 }
 
-void Material::setParam(MaterialParam param, float Factor)
+void Material::setFactorParam(MaterialParam param, float factor)
 {
 	switch (param) {
-	case TRANSPARENCY_Factor:
-		transparencyFactor = Factor;
+	case TRANSPARENCY_FACTOR:
+		transparencyFactor = factor;
 		enableTransparencyFactor = true;
 		break;
-	case SHININESS_Factor:
-		shininessFactor = Factor;
+	case SHININESS_FACTOR:
+		shininessFactor = factor;
 		enableShininessFactor = true;
 		break;
-	case REFLECTION_Factor:
-		reflectionFactor = Factor;
+	case REFLECTION_FACTOR:
+		reflectionFactor = factor;
 		enableReflectionFactor = true;
 		break;
 	default:
-		fprintf(stderr, "Error: Use undefined Factor\n");
+		fprintf(stderr, "Error: Use undefined factor\n");
 	}
 }
 
 glm::vec3 * oglt::Material::getColorParam(MaterialParam param)
 {
 	switch (param) {
-	case AMBIENT_COLOR:
-		if (enableAmbientColor)
-			return &ambientColor;
+	case AMBIENT:
+		if (enableAmbient)
+			return &ambient;
 		break;
-	case DIFFUSE_COLOR:
-		if (enableDiffuseColor)
-			return &diffuseColor;
+	case DIFFUSE:
+		if (enableDiffuse)
+			return &diffuse;
 		break;
-	case SPECULAR_COLOR:
-		if (enableSpecularColor)
-			return &specularColor;
+	case SPECULAR:
+		if (enableSpecular)
+			return &specular;
 		break;
-	case EMISSIVE_COLOR:
-		if (enableEmissiveColor)
-			return &emissiveColor;
+	case EMISSIVE:
+		if (enableEmissive)
+			return &emissive;
 		break;
 	default:
-		fprintf(stderr, "Error: Use undefind color\n");
+		fprintf(stderr, "Error: Use undefind \n");
 	}
-	fprintf(stderr, "Error: Use unenable color\n");
+	fprintf(stderr, "Error: Use unenable \n");
 	return nullptr;
 }
 
 float Material::getFactorParam(MaterialParam param)
 {
 	switch (param) {
-	case TRANSPARENCY_Factor:
+	case TRANSPARENCY_FACTOR:
 		if (enableTransparencyFactor)
 			return transparencyFactor;
 		break;
-	case SHININESS_Factor:
+	case SHININESS_FACTOR:
 		if (enableShininessFactor)
 			return shininessFactor;
 		break;
-	case REFLECTION_Factor:
+	case REFLECTION_FACTOR:
 		if (enableReflectionFactor)
 			return reflectionFactor;
 		break;
 	default:
-		fprintf(stderr, "Error: Use undefined Factor\n");
+		fprintf(stderr, "Error: Use undefined factor\n");
 	}
-	fprintf(stderr, "Error: Use unenable Factor\n");
+	fprintf(stderr, "Error: Use unenable factor\n");
 	return 0.0f;
 }
 
 void Material::addTexture(Texture& texture)
 {
 	textures.push_back(texture);
+}
+
+void oglt::Material::setShaderProgram(ShaderProgram * shaderProgram)
+{
+	this->shaderProgram = shaderProgram;
+}
+
+void oglt::Material::useMaterial()
+{
+	if (shaderProgram == NULL)
+		return;
+
+	shaderProgram->useProgram();
+	if (enableAmbient)
+		shaderProgram->setUniform("ambiemt", &ambient);
+	if (enableDiffuse)
+		shaderProgram->setUniform("diffuse", &diffuse);
+	if (enableSpecular)
+		shaderProgram->setUniform("specular", &specular);
+	if (enableEmissive)
+		shaderProgram->setUniform("emissive", &emissive);
+	if (enableTransparencyFactor)
+		shaderProgram->setUniform("transparencyFactor", transparencyFactor);
+	if (enableShininessFactor)
+		shaderProgram->setUniform("shininessFactor", shininessFactor);
+	if (reflectionFactor)
+		shaderProgram->setUniform("reflectionFactor", reflectionFactor);
 }
 

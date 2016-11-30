@@ -2,12 +2,13 @@
 
 #include "std_util.h"
 #include "oglt_texture.h"
+#include "oglt_shader.h"
 #include <glm/glm.hpp>
 
 namespace oglt {
 	enum MaterialParam {
-		AMBIENT_COLOR, DIFFUSE_COLOR, SPECULAR_COLOR, EMISSIVE_COLOR,
-		TRANSPARENCY_Factor, SHININESS_Factor, REFLECTION_Factor
+		AMBIENT, DIFFUSE, SPECULAR, EMISSIVE,
+		TRANSPARENCY_FACTOR, SHININESS_FACTOR, REFLECTION_FACTOR
 	};
 
 	class Material {
@@ -15,29 +16,33 @@ namespace oglt {
 		Material();
 		~Material();
 
-		void setParam(MaterialParam param, glm::vec3 color);
-		void setParam(MaterialParam param, float Factor);
+		void setColorParam(MaterialParam param, glm::vec3& color);
+		void setFactorParam(MaterialParam param, float Factor);
 
 		glm::vec3* getColorParam(MaterialParam param);
 		float getFactorParam(MaterialParam param);
 		void addTexture(Texture& texture);
+		void setShaderProgram(ShaderProgram* shaderProgram);
+
+		void useMaterial();
 	private:
-		glm::vec3 ambientColor;
-		glm::vec3 diffuseColor;
-		glm::vec3 specularColor;
-		glm::vec3 emissiveColor;
+		glm::vec3 ambient;
+		glm::vec3 diffuse;
+		glm::vec3 specular;
+		glm::vec3 emissive;
 		float transparencyFactor;
 		float shininessFactor;
 		float reflectionFactor;
 
-		bool enableAmbientColor;
-		bool enableDiffuseColor;
-		bool enableSpecularColor;
-		bool enableEmissiveColor;
+		bool enableAmbient;
+		bool enableDiffuse;
+		bool enableSpecular;
+		bool enableEmissive;
 		bool enableTransparencyFactor;
 		bool enableShininessFactor;
 		bool enableReflectionFactor;
 
 		vector<Texture> textures;
+		ShaderProgram* shaderProgram;
 	};
 }

@@ -26,6 +26,8 @@ FbxModel testModel;
 Shader ortho, font, vtMain, fgMain, dirLight, vtFbx, fgFbx;
 ShaderProgram spFont, spMain, spFbx;
 
+int cameraUpdateMode = OGLT_UPDATEA_CAMERA_WALK | OGLT_UPDATE_CAMERA_ROTATE;
+
 void scene::initScene(oglt::IApp* app) {
 	glClearColor(0.1f, 0.3f, 0.7f, 1.0f);
 
@@ -96,7 +98,7 @@ void scene::renderScene(oglt::IApp* app) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	worldTree.calcNodeHeirarchyTransform();
-	camera.update();
+	camera.update(cameraUpdateMode);
 	
 	spMain.useProgram();
 	spMain.setUniform("matrices.viewMatrix", camera.look());
@@ -133,6 +135,16 @@ void scene::renderScene(oglt::IApp* app) {
 	ftFont.render();
 
 	glEnable(GL_DEPTH_TEST);
+
+	// just for testing
+	if (app->key('r') || app->key('R')) {
+		if (cameraUpdateMode & OGLT_UPDATE_CAMERA_ROTATE) {
+			cameraUpdateMode ^= OGLT_UPDATE_CAMERA_ROTATE;
+		}
+		else {
+			cameraUpdateMode |= OGLT_UPDATE_CAMERA_ROTATE;
+		}
+	}
 
 	app->swapBuffers();
 }

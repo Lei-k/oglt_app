@@ -109,6 +109,37 @@ bool FbxModel::load(const string & fileName)
 	cout << "uv0s size: " << uvs[0].getCurrentSize() / sizeof(glm::vec2) << endl;
 	cout << "normals size: " << normals.getCurrentSize() / sizeof(glm::vec3) << endl;
 	cout << "mesh size: " << meshs.size() << endl;
+	FOR(i, meshs.size()) {
+		cout << "attribute on mesh " << i << endl;
+		cout << "start index: " << meshs[i].startIndex << endl;
+		cout << "size: " << meshs[i].size << endl;
+		cout << "material size: " << meshs[i].materials.size() << endl;
+		char buf[100];
+		switch (meshs[i].mtlMapMode) {
+		case NONE:
+			sprintf(buf, "NONE");
+			break;
+		case ALL_SAME:
+			sprintf(buf, "All Same");
+			break;
+		case BY_POLYGON:
+			sprintf(buf, "By Polygon");
+			break;
+		}
+		cout << "material mapping mode:" << buf << endl;
+		if (meshs[i].mtlMapMode == BY_POLYGON) {
+			cout << "the triangles size: " << meshs[i].triangles.size() << endl;
+			cout << "material indices in triangles: " << endl;
+			uint lastIndex = 99999;
+			FOR(j, ESZ(meshs[i].triangles)) {
+				if (lastIndex != meshs[i].triangles[j].materialIndex) {
+					cout << "triangle " << j << ": " << meshs[i].triangles[j].materialIndex << endl;
+					lastIndex = meshs[i].triangles[j].materialIndex;
+				}
+			}
+		}
+		cout << endl;
+	}
 
 	finalizeVBO();
 
@@ -131,14 +162,6 @@ bool FbxModel::loadFromScene(FbxScene * scene)
 	}
 
 	processNode(rootNode);
-}
-
-void FbxModel::traverseNode(FbxNode * parentNode, vector<vec3>& vertices, vector<vec2>& uvs, vector<vec3>& normals)
-{
-	FOR(i, parentNode->GetChildCount()) {
-		FbxNode* childNode = parentNode->GetChild(i);
-		traverseNode(childNode, vertices, uvs, normals);
-	}
 }
 
 void FbxModel::processNode(FbxNode * node)
@@ -174,13 +197,15 @@ void FbxModel::processMesh(FbxNode * node)
 	glm::vec3 normal[3];
 	glm::vec3 tangent[3];
 	glm::vec2 uv[3][MAX_UV_CHANNEL];
+	Triangle triangle;
 
-	MeshEntry meshEntry;
+	Mesh meshEntry;
 	meshEntry.startIndex = vertices.getCurrentSize() / sizeof(glm::vec3);
 
 	int vertexCounter = 0;
 
 	FOR(i, mesh->GetPolygonCount()) {
+		triangle.startIndex = vertices.getCurrentSize() / sizeof(glm::vec3);
 		FOR (j, 3) {
 			int ctrlPointIndex = mesh->GetPolygonVertex(i, j);
 
@@ -201,10 +226,21 @@ void FbxModel::processMesh(FbxNode * node)
 
 			vertexCounter++;
 
+			triangle.vertexIndices[j] = vertices.getCurrentSize() / sizeof(glm::vec3);
 			vertices.addData(&vertex[j], sizeof(glm::vec3));
 			colors.addData(&color[j], sizeof(glm::vec4));
 			normals.addData(&normal[j], sizeof(glm::vec3));
 		}
+		meshEntry.triangles.push_back(triangle);
+	}
+
+	connectMtlToMesh(mesh, &meshEntry);
+	loadMaterial(mesh, &meshEntry);
+
+	if (meshEntry.mtlMapMode != BY_POLYGON) {
+		// if the materials are not use the polygon mapping
+		// clear the triangles array for reduce memory cost
+		meshEntry.triangles.clear();
 	}
 	meshEntry.size = vertices.getCurrentSize() / sizeof(glm::vec3) - meshEntry.startIndex;
 	meshs.push_back(meshEntry);
@@ -407,6 +443,97 @@ void FbxModel::readTangent(FbxMesh * mesh, int ctrlPointIndex, int vertexCounter
 	}
 }
 
+void FbxModel::connectMtlToMesh(FbxMesh * fbxMesh, Mesh * ogltMesh)
+{
+	FbxGeometryElementMaterial* material = fbxMesh->GetElementMaterial();
+	if (material) {
+		FbxLayerElementArrayTemplate<int>* mtlIndices = &material->GetIndexArray();
+		if (mtlIndices) {
+			switch (material->GetMappingMode()) {
+			case FbxGeometryElement::eByPolygon:
+				if (mtlIndices->GetCount() == ogltMesh->triangles.size()) {
+					FOR(i, mtlIndices->GetCount()) {
+						ogltMesh->triangles[i].materialIndex = mtlIndices->GetAt(i);
+					}
+					ogltMesh->mtlMapMode = BY_POLYGON;
+				}
+				break;
+			case FbxGeometryElement::eAllSame:
+				ogltMesh->materialIndex = mtlIndices->GetAt(0);
+				ogltMesh->mtlMapMode = ALL_SAME;
+				break;
+			}
+		}
+	}
+}
+
+void FbxModel::loadMaterial(FbxMesh * mesh, Mesh* ogltMesh)
+{
+	FbxNode* node = mesh->GetNode();
+	if (node == NULL)
+		return;
+
+	uint materialCount = node->GetMaterialCount();
+
+	if (materialCount > 0) {
+		FOR(i, materialCount) {
+			FbxSurfaceMaterial* surfaceMaterial = node->GetMaterial(i);
+			Material material;
+			loadMaterialAttribute(surfaceMaterial, &material);
+			ogltMesh->materials.push_back(material);
+		}
+	}
+}
+
+void FbxModel::loadMaterialAttribute(FbxSurfaceMaterial * surfaceMaterial, Material* outMaterial)
+{
+	if (surfaceMaterial->GetClassId().Is(FbxSurfacePhong::ClassId)) {
+		FbxSurfacePhong* surfacePhone = (FbxSurfacePhong*)surfaceMaterial;
+		FbxDouble3 fbxColor = surfacePhone->Ambient;
+		vec3 color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
+		outMaterial->setColorParam(AMBIENT, color);
+		fbxColor = surfacePhone->Diffuse;
+		color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
+		outMaterial->setColorParam(DIFFUSE, color);
+		fbxColor = surfacePhone->Specular;
+		color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
+		outMaterial->setColorParam(SPECULAR, color);
+		fbxColor = surfacePhone->Emissive;
+		color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
+		outMaterial->setColorParam(EMISSIVE, color);
+
+		FbxDouble factor = surfacePhone->TransparencyFactor;
+		outMaterial->setFactorParam(TRANSPARENCY_FACTOR, factor);
+		factor = surfacePhone->Shininess;
+		outMaterial->setFactorParam(SHININESS_FACTOR, factor);
+		factor = surfacePhone->ReflectionFactor;
+		outMaterial->setFactorParam(REFLECTION_FACTOR, factor);
+	}
+	else if (surfaceMaterial->GetClassId().Is(FbxSurfaceLambert::ClassId)) {
+		FbxSurfacePhong* surfacePhone = (FbxSurfacePhong*)surfaceMaterial;
+		FbxDouble3 fbxColor = surfacePhone->Ambient;
+		vec3 color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
+		outMaterial->setColorParam(AMBIENT, color);
+		fbxColor = surfacePhone->Diffuse;
+		color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
+		outMaterial->setColorParam(DIFFUSE, color);
+		fbxColor = surfacePhone->Specular;
+		color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
+		outMaterial->setColorParam(SPECULAR, color);
+		fbxColor = surfacePhone->Emissive;
+		color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
+		outMaterial->setColorParam(EMISSIVE, color);
+
+		FbxDouble factor = surfacePhone->TransparencyFactor;
+		outMaterial->setFactorParam(TRANSPARENCY_FACTOR, factor);
+	}
+}
+
+void FbxModel::loadMaterialTexture(FbxSurfaceMaterial * surfaceMaterial, Material * outMaterial)
+{
+	
+}
+
 void FbxModel::finalizeVBO()
 {
 	glGenVertexArrays(1, &vao);
@@ -446,5 +573,12 @@ void FbxModel::render(int renderType)
 	FOR(i, ESZ(meshs)) {
 		glDrawArrays(GL_TRIANGLES, meshs[i].startIndex, meshs[i].size);
 	}
+
+	// test rendering with per triangle, the fps reduce from 1300 to 55
+	/*FOR(i, ESZ(meshs)) {
+		FOR(j, ESZ(meshs[i].triangles)) {
+			glDrawArrays(GL_TRIANGLES, meshs[i].triangles[j].startIndex, 3);
+		}
+	}*/
 	
 }
