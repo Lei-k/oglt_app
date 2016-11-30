@@ -37,7 +37,7 @@ namespace oglt {
 		struct MeshEntry {
 			uint startIndex;
 			uint size;
-			vector<uint> materialIndices;
+			uint materialIndex;
 		};
 
 #define MAX_UV_CHANNEL 5

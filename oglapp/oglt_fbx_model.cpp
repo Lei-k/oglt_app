@@ -83,8 +83,19 @@ bool FbxModel::load(const string & fileName)
 		fprintf(stderr, "Error: Unable importer to scene.\n");
 		return false;
 	}
+
+	FbxSystemUnit sceneSystemUnit = scene->GetGlobalSettings().GetSystemUnit();
+	if (sceneSystemUnit.GetScaleFactor() != 1.0)
+	{
+		//The unit in this is centimeter.
+		FbxSystemUnit::cm.ConvertScene(scene);
+	}
+
 	FbxGeometryConverter geoConverter(manager);
-	geoConverter.Triangulate(scene, true);
+	
+	if (!geoConverter.Triangulate(scene, true)) {
+		fprintf(stderr, "Error: Unable conver to triangle mesh.\n");
+	}
 
 	importer->Destroy();
 	importer = NULL;
