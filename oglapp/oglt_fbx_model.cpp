@@ -108,7 +108,12 @@ bool FbxModel::load(const string & fileName)
 	cout << "colors size: " << colors.getCurrentSize() / sizeof(glm::vec4) << endl;
 	cout << "uv0s size: " << uvs[0].getCurrentSize() / sizeof(glm::vec2) << endl;
 	cout << "normals size: " << normals.getCurrentSize() / sizeof(glm::vec3) << endl;
+	cout << "texture size: " << textures.size() << endl;
 	cout << "mesh size: " << meshs.size() << endl;
+	cout << "textures: " << endl;
+	FOR(i, ESZ(textures)) {
+		cout << "texture " << i << " path: " << textures[i].getPath() << endl;
+	}
 	FOR(i, meshs.size()) {
 		cout << "attribute on mesh " << i << endl;
 		cout << "start index: " << meshs[i].startIndex << endl;
@@ -126,16 +131,14 @@ bool FbxModel::load(const string & fileName)
 			sprintf(buf, "By Polygon");
 			break;
 		}
-		cout << "material mapping mode:" << buf << endl;
+		cout << "material mapping mode: " << buf << endl;
 		if (meshs[i].mtlMapMode == BY_POLYGON) {
-			cout << "the triangles size: " << meshs[i].triangles.size() << endl;
-			cout << "material indices in triangles: " << endl;
-			uint lastIndex = 99999;
-			FOR(j, ESZ(meshs[i].triangles)) {
-				if (lastIndex != meshs[i].triangles[j].materialIndex) {
-					cout << "triangle " << j << ": " << meshs[i].triangles[j].materialIndex << endl;
-					lastIndex = meshs[i].triangles[j].materialIndex;
-				}
+			cout << "the polygons size: " << meshs[i].polygons.size() << endl;
+			FOR(j, ESZ(meshs[i].polygons)) {
+				cout << "polygon " << j << " start index: " << meshs[i].polygons[j].startIndex << endl;
+				cout << "polygon " << j << " size: " << meshs[i].polygons[j].size << endl;
+				cout << "polygon " << j << " material index: " << meshs[i].polygons[j].materialIndex << endl;
+				cout << "polygon " << j << " use texture index: " << meshs[i].materials[meshs[i].polygons[j].materialIndex].getTextureIndex(DIFFUSE) << endl;
 			}
 		}
 		cout << endl;
@@ -242,6 +245,11 @@ void FbxModel::processMesh(FbxNode * node)
 		// clear the triangles array for reduce memory cost
 		meshEntry.triangles.clear();
 	}
+	else {
+		// if use polygon mapping build the polygons for rendering
+		meshEntry.buildPolygonsPerMtl();
+	}
+
 	meshEntry.size = vertices.getCurrentSize() / sizeof(glm::vec3) - meshEntry.startIndex;
 	meshs.push_back(meshEntry);
 }
@@ -527,11 +535,54 @@ void FbxModel::loadMaterialAttribute(FbxSurfaceMaterial * surfaceMaterial, Mater
 		FbxDouble factor = surfacePhone->TransparencyFactor;
 		outMaterial->setFactorParam(TRANSPARENCY_FACTOR, factor);
 	}
+
+	loadMaterialTexture(surfaceMaterial, outMaterial);
 }
 
 void FbxModel::loadMaterialTexture(FbxSurfaceMaterial * surfaceMaterial, Material * outMaterial)
 {
-	
+	FbxProperty property;
+	property = surfaceMaterial->FindProperty(FbxSurfaceMaterial::sDiffuse);
+	FOR(i, property.GetSrcObjectCount<FbxTexture>()) {
+		FbxLayeredTexture* layeredTexture = property.GetSrcObject<FbxLayeredTexture>(i);
+		if (layeredTexture) {
+			FOR(j, layeredTexture->GetSrcObjectCount<FbxTexture>()) {
+				FbxTexture* texture = layeredTexture->GetSrcObject<FbxTexture>(j);
+				if (texture) {
+					FbxFileTexture* fileTexture = FbxCast<FbxFileTexture>(texture);
+					loadTexture(texture, DIFFUSE, outMaterial);
+				}
+			}
+		}
+		else {
+			// no layered textures simply get on the property
+			FbxTexture* texture = property.GetSrcObject<FbxTexture>(i);
+			loadTexture(texture, DIFFUSE, outMaterial);
+		}
+	}
+}
+
+void FbxModel::loadTexture(FbxTexture * texture, MaterialParam param, Material * outMaterial)
+{
+	if (texture) {
+		FbxFileTexture* fileTexture = FbxCast<FbxFileTexture>(texture);
+		int textureIndex = -1;
+		FOR(k, ESZ(textures)) {
+			if (string(fileTexture->GetFileName()) == textures[k].getPath()) {
+				textureIndex = k;
+				break;
+			}
+		}
+		if (textureIndex != -1) {
+			outMaterial->linkTexture(param, textureIndex);
+		}
+		else {
+			Texture newTexture;
+			newTexture.loadTexture2D(fileTexture->GetFileName(), true);
+			textures.push_back(newTexture);
+			outMaterial->linkTexture(param, ESZ(textures) - 1);
+		}
+	}
 }
 
 void FbxModel::finalizeVBO()
@@ -570,8 +621,22 @@ void FbxModel::render(int renderType)
 		return;
 
 	glBindVertexArray(vao);
+
 	FOR(i, ESZ(meshs)) {
-		glDrawArrays(GL_TRIANGLES, meshs[i].startIndex, meshs[i].size);
+		if (meshs[i].mtlMapMode == ALL_SAME) {
+			glDrawArrays(GL_TRIANGLES, meshs[i].startIndex, meshs[i].size);
+		}
+		else if (meshs[i].mtlMapMode == BY_POLYGON) {
+			// test rendering with per polygon, the fps still on 1300
+			FOR(j, ESZ(meshs[i].polygons)) {
+				Material* material = &meshs[i].materials[meshs[i].polygons[j].materialIndex];
+				uint textureIndex = material->getTextureIndex(DIFFUSE);
+				if (textureIndex != OGLT_INVALID_TEXTURE_INDEX) {
+					textures[textureIndex].bindTexture();
+				}
+				glDrawArrays(GL_TRIANGLES, meshs[i].polygons[j].startIndex, meshs[i].polygons[j].size);
+			}
+		}
 	}
 
 	// test rendering with per triangle, the fps reduce from 1300 to 55
@@ -580,5 +645,4 @@ void FbxModel::render(int renderType)
 			glDrawArrays(GL_TRIANGLES, meshs[i].triangles[j].startIndex, 3);
 		}
 	}*/
-	
 }

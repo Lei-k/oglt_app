@@ -13,6 +13,10 @@ Material::Material()
 	enableReflectionFactor = false;
 
 	shaderProgram = NULL;
+
+	diffuseTextureIndex = OGLT_INVALID_TEXTURE_INDEX;
+	specularTextureIndex = OGLT_INVALID_TEXTURE_INDEX;
+	toonTextureIndex = OGLT_INVALID_TEXTURE_INDEX;
 }
 
 Material::~Material()
@@ -112,10 +116,38 @@ float Material::getFactorParam(MaterialParam param)
 	return 0.0f;
 }
 
-void Material::addTexture(Texture& texture)
+void oglt::Material::linkTexture(MaterialParam param, uint textureId)
 {
-	textures.push_back(texture);
+	switch (param) {
+	case DIFFUSE:
+		diffuseTextureIndex = textureId;
+		break;
+	case SPECULAR:
+		specularTextureIndex = textureId;
+		break;
+	case TOON:
+		toonTextureIndex = textureId;
+		break;
+	default:
+		fprintf(stderr, "Error: Use undefined texture param\n");
+	}
 }
+
+uint oglt::Material::getTextureIndex(MaterialParam param)
+{
+	switch (param) {
+	case DIFFUSE:
+		return diffuseTextureIndex;
+	case SPECULAR:
+		return specularTextureIndex;
+	case TOON:
+		return toonTextureIndex;
+	default:
+		fprintf(stderr, "Error: Use undefined texture param\n");
+	}
+	return OGLT_INVALID_TEXTURE_INDEX;
+}
+
 
 void oglt::Material::setShaderProgram(ShaderProgram * shaderProgram)
 {

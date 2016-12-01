@@ -85,7 +85,8 @@ void scene::initScene(oglt::IApp* app) {
 	
 	// Test the fbx model loading
 	// developing...
-	testModel.load("data/models/TdaJKStyle/TdaJKStyle.fbx");
+	testModel.load("data/models/TdaJKStyle2/TdaJKStyle.fbx");
+	testModel.setShaderProgram(&spFbx);
 	testObj.addRenderObj(&testModel);
 	testObj.setShaderProgram(&spFbx);
 	testObj.getLocalTransform()->position = vec3(0.0f, 50.0f, 0.0f);

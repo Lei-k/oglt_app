@@ -36,6 +36,7 @@ namespace oglt {
 		void loadMaterial(FbxMesh* mesh, Mesh* ogltMesh);
 		void loadMaterialAttribute(FbxSurfaceMaterial* surfaceMaterial, Material* outMaterial);
 		void loadMaterialTexture(FbxSurfaceMaterial* surfaceMaterial, Material* outMaterial);
+		void loadTexture(FbxTexture* texture, MaterialParam param, Material* outMaterial);
 
 		void finalizeVBO();
 
@@ -43,6 +44,7 @@ namespace oglt {
 
 		bool loaded;
 		vector<Mesh> meshs;
+		vector<Texture> textures;
 
 		uint vao;
 		VertexBufferObject vertices;

@@ -8,7 +8,8 @@
 namespace oglt {
 	enum MaterialParam {
 		AMBIENT, DIFFUSE, SPECULAR, EMISSIVE,
-		TRANSPARENCY_FACTOR, SHININESS_FACTOR, REFLECTION_FACTOR
+		TRANSPARENCY_FACTOR, SHININESS_FACTOR, REFLECTION_FACTOR,
+		TOON
 	};
 
 	class Material {
@@ -21,7 +22,8 @@ namespace oglt {
 
 		glm::vec3* getColorParam(MaterialParam param);
 		float getFactorParam(MaterialParam param);
-		void addTexture(Texture& texture);
+		void linkTexture(MaterialParam param, uint textureId);
+		uint getTextureIndex(MaterialParam param);
 		void setShaderProgram(ShaderProgram* shaderProgram);
 
 		void useMaterial();
@@ -42,7 +44,9 @@ namespace oglt {
 		bool enableShininessFactor;
 		bool enableReflectionFactor;
 
-		vector<Texture> textures;
+		uint diffuseTextureIndex;
+		uint specularTextureIndex;
+		uint toonTextureIndex;
 		ShaderProgram* shaderProgram;
 	};
 }
