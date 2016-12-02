@@ -27,10 +27,12 @@ void SceneObject::removeRenderObj(oglt::IRenderable * renderObj)
 
 void SceneObject::render(int renderType)
 {
-	if(shaderProgram != NULL)
-		shaderProgram->setUniform("matrices.modelMatrix", modelMatrix);
+	mutexModelMatrix = &modelMatrix;
 
 	FOR (i, renderObjs.size()) {
+		if (renderObjs[i]->getShaderProgram() == NULL) {
+			renderObjs[i]->setShaderProgram(shaderProgram);
+		}
 		renderObjs[i]->render();
 	}
 

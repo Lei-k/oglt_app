@@ -159,9 +159,9 @@ void oglt::Material::useMaterial()
 	if (shaderProgram == NULL)
 		return;
 
-	shaderProgram->useProgram();
+	//shaderProgram->useProgram();
 	if (enableAmbient)
-		shaderProgram->setUniform("ambiemt", &ambient);
+		shaderProgram->setUniform("ambient", &ambient);
 	if (enableDiffuse)
 		shaderProgram->setUniform("diffuse", &diffuse);
 	if (enableSpecular)

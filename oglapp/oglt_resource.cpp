@@ -6,6 +6,31 @@ vector<ShaderProgram> Resource::shaderPrograms;
 vector<Texture> Resource::textures;
 vector<Material> Resource::materials;
 
+void Resource::initialize()
+{
+	shaderPrograms.clear();
+	textures.clear();
+	materials.clear();
+
+	Shader vtDefault, fgDefault;
+	ShaderProgram spDefault;
+	vtDefault.loadShader("data/shaders/main_shader.vert", GL_VERTEX_SHADER);
+	fgDefault.loadShader("data/shaders/main_shader.frag", GL_FRAGMENT_SHADER);
+
+	spDefault.createProgram();
+	spDefault.addShaderToProgram(&vtDefault);
+	spDefault.addShaderToProgram(&fgDefault);
+	spDefault.linkProgram();
+
+	shaderPrograms.push_back(spDefault);
+
+	Material defMaterial;
+	defMaterial.setColorParam(DIFFUSE, glm::vec3(0.5f, 0.5f, 0.5f));
+	defMaterial.setShaderProgram(&shaderPrograms[0]);
+
+	materials.push_back(defMaterial);
+}
+
 uint Resource::addShaderProgram(ShaderProgram & shaderProgram)
 {
 	// the shader program id store in Resource class
@@ -52,7 +77,7 @@ uint Resource::addTexture(Texture & texture)
 Texture * Resource::getTexture(uint textureId)
 {
 	if (textureId == OGLT_INVALID_TEXTURE_ID || textureId >= ESZ(textures)) {
-		textureId = DEFAULT_TEXTURE_ID;
+		return NULL;
 	}
 	return &textures[textureId];
 }
@@ -74,5 +99,8 @@ uint Resource::addMaterial(Material & material)
 
 Material * Resource::getMaterial(uint materialId)
 {
-	return nullptr;
+	if (materialId == OGLT_INVALID_MATERIAL_ID || materialId >= ESZ(materials)) {
+		materialId = DEFAULT_MATERIAL_ID;
+	}
+	return &materials[materialId];
 }

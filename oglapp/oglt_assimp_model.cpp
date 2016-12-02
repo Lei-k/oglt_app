@@ -154,6 +154,18 @@ void AssimpModel::render(int renderType)
 {
 	if (!loaded) return;
 
+	if (shaderProgram != NULL) {
+		shaderProgram->useProgram();
+		shaderProgram->setModelAndNormalMatrix("matrices.modelMatrix", "matrices.normalMatrix", mutexModelMatrix);
+		shaderProgram->setUniform("matrices.viewMatrix", mutexViewMatrix);
+		shaderProgram->setUniform("matrices.projMatrix", mutexProjMatrix);
+		shaderProgram->setUniform("sunLight.vColor", glm::vec3(1.0f, 1.0f, 1.0f));
+		shaderProgram->setUniform("sunLight.vDirection", mutexSunLightDir);
+		shaderProgram->setUniform("sunLight.fAmbient", 1.0f);
+		shaderProgram->setUniform("gSampler", 0);
+		shaderProgram->setUniform("vColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	}
+
 	glBindVertexArray(vao);
 	int iNumMeshes = ESZ(meshSizes);
 	FOR(i, iNumMeshes)

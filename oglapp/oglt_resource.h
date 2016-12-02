@@ -9,6 +9,7 @@
 namespace oglt {
 	class Resource {
 	public:
+		static void initialize();
 		static uint addShaderProgram(ShaderProgram& shaderProgram);
 		static ShaderProgram* getShaderProgram(uint shaderId);
 		static uint addTexture(Texture& texture);

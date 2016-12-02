@@ -26,6 +26,8 @@ FbxModel testModel;
 Shader ortho, font, vtMain, fgMain, dirLight, vtFbx, fgFbx;
 ShaderProgram spFont, spMain, spFbx;
 
+vec3 sunDir = vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0);
+
 int cameraUpdateMode = OGLT_UPDATEA_CAMERA_WALK | OGLT_UPDATE_CAMERA_ROTATE;
 
 void scene::initScene(oglt::IApp* app) {
@@ -85,11 +87,17 @@ void scene::initScene(oglt::IApp* app) {
 	
 	// Test the fbx model loading
 	// developing...
-	testModel.load("data/models/MIKU/scenes/MIKU.fbx");
+	testModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
 	testModel.setShaderProgram(&spFbx);
 	testObj.addRenderObj(&testModel);
 	testObj.setShaderProgram(&spFbx);
 	testObj.getLocalTransform()->position = vec3(0.0f, 50.0f, 0.0f);
+	cityObj.addChild(&testObj);
+
+	IRenderable::mutexViewMatrix = camera.look();
+	IRenderable::mutexProjMatrix = app->getProj();
+	IRenderable::mutexOrthoMatrix = app->getOrth();
+	IRenderable::mutexSunLightDir = &sunDir;
 
 	glEnable(GL_DEPTH_TEST);
 	glClearDepth(1.0);
@@ -100,26 +108,8 @@ void scene::renderScene(oglt::IApp* app) {
 
 	worldTree.calcNodeHeirarchyTransform();
 	camera.update(cameraUpdateMode);
-	
-	spMain.useProgram();
-	spMain.setUniform("matrices.viewMatrix", camera.look());
-	spMain.setUniform("matrices.projMatrix", app->getProj());
-	spMain.setUniform("sunLight.vColor", vec3(1.0f, 1.0f, 1.0f));
-	spMain.setUniform("sunLight.vDirection", vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0));
-	spMain.setUniform("sunLight.fAmbient", 1.0f);
-	spMain.setUniform("vColor", vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	worldTree.render(OGLT_RENDER_CHILDREN);
-
-	spFbx.useProgram();
-	spFbx.setUniform("matrices.viewMatrix", camera.look());
-	spFbx.setUniform("matrices.projMatrix", app->getProj());
-	spFbx.setUniform("sunLight.vColor", vec3(1.0f, 1.0f, 1.0f));
-	spFbx.setUniform("sunLight.vDirection", vec3(sqrt(2.0f) / 2, -sqrt(2.0f) / 2, 0));
-	spFbx.setUniform("sunLight.fAmbient", 1.0f);
-
-	testObj.calcNodeHeirarchyTransform();
-	testObj.render();
 
 	spFont.useProgram();
 	spFont.setUniform("matrices.projMatrix", app->getOrth());

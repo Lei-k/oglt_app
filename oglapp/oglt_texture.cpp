@@ -109,7 +109,7 @@ bool Texture::loadTexture2D(string a_sPath, bool bGenerateMipMaps)
 
 	GLenum format;
 	int bada = FreeImage_GetBPP(dib);
-	if (FreeImage_GetBPP(dib) == 32)format = GL_RGBA;
+	if (FreeImage_GetBPP(dib) == 32)format = GL_BGRA;
 	if (FreeImage_GetBPP(dib) == 24)format = GL_BGR;
 	if (FreeImage_GetBPP(dib) == 8)format = GL_LUMINANCE;
 	createFromData(bDataPointer, FreeImage_GetWidth(dib), FreeImage_GetHeight(dib), FreeImage_GetBPP(dib), format, bGenerateMipMaps);

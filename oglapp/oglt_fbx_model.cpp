@@ -622,6 +622,16 @@ void FbxModel::render(int renderType)
 
 	glBindVertexArray(vao);
 
+	if (shaderProgram != NULL) {
+		shaderProgram->useProgram();
+		shaderProgram->setUniform("matrices.viewMatrix", mutexViewMatrix);
+		shaderProgram->setUniform("matrices.projMatrix", mutexProjMatrix);
+		shaderProgram->setModelAndNormalMatrix("matrices.modelMatrix", "matrices.normalMatrix", mutexModelMatrix);
+		shaderProgram->setUniform("sunLight.vColor", vec3(1.0f, 1.0f, 1.0f));
+		shaderProgram->setUniform("sunLight.vDirection", mutexSunLightDir);
+		shaderProgram->setUniform("sunLight.fAmbient", 1.0f);
+	}
+
 	FOR(i, ESZ(meshs)) {
 		if (meshs[i].mtlMapMode == ALL_SAME) {
 			glDrawArrays(GL_TRIANGLES, meshs[i].startIndex, meshs[i].size);
