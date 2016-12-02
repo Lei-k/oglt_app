@@ -85,7 +85,7 @@ void scene::initScene(oglt::IApp* app) {
 	
 	// Test the fbx model loading
 	// developing...
-	testModel.load("data/models/TdaJKStyleEX/TdaJKStyle.fbx");
+	testModel.load("data/models/MIKU/scenes/MIKU.fbx");
 	testModel.setShaderProgram(&spFbx);
 	testObj.addRenderObj(&testModel);
 	testObj.setShaderProgram(&spFbx);
