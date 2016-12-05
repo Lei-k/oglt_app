@@ -16,9 +16,27 @@ namespace oglt {
 		static bool initialize();
 		static void destroyManager();
 		bool load(const string& fileName);
+		void updateAnimation(float deltaTime);
 
 		virtual void render(int renderType = OGLT_RENDER_SELF);
 	private:
+		struct VertexBoneData {
+			int boneIndices[4];
+			float weights[4];
+
+			VertexBoneData() {
+				memset(boneIndices, 0, sizeof(boneIndices));
+				memset(weights, 0, sizeof(weights));
+			}
+
+			void addBoneData(int boneIndex, float wieght);
+		};
+
+		struct BoneInfo {
+			glm::mat4 boneOffset;
+			glm::mat4 finalTransform;
+		};
+
 		bool loadFromScene(FbxScene* scene);
 		void processNode(FbxNode* node);
 		void processMesh(FbxNode* node);
@@ -38,7 +56,16 @@ namespace oglt {
 		void loadMaterialTexture(FbxSurfaceMaterial* surfaceMaterial, Material* outMaterial);
 		void loadTexture(FbxTexture* texture, MaterialParam param, Material* outMaterial);
 
+		void connectSkeletonToMesh(FbxMesh* fbxMesh, vector<VertexBoneData>& ctrlPointBones);
+		void connectSkinToMesh(FbxSkin* skin, vector<VertexBoneData>& ctrlPointBones);
+		void mapVertexBoneFromCtrlPoint(vector<VertexBoneData>& ctrlPointBones, vector<uint>& ctrlPointIndices);
+
+		void readNodeCurve(FbxAnimLayer* animLayer, FbxAnimEvaluator* animEvaluator, FbxNode* node, FbxTime& time);
+
 		void finalizeVBO();
+
+		glm::mat4 toGlmMatrix(FbxAMatrix& matrix);
+		glm::mat4 toGlmMatrix(FbxMatrix& matrix);
 
 #define MAX_UV_CHANNEL 5
 
@@ -48,9 +75,16 @@ namespace oglt {
 
 		uint vao;
 		VertexBufferObject vertices;
+		VertexBufferObject boneIndices;
+		VertexBufferObject boneWeights;
 		VertexBufferObject colors;
 		VertexBufferObject normals;
 		VertexBufferObject uvs[MAX_UV_CHANNEL];
+
+		map<string, uint> boneMapping;
+		vector<BoneInfo> boneInfos;
+
+		float timer;
 
 		static FbxManager* manager;
 		FbxImporter* importer;

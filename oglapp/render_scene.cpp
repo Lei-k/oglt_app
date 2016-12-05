@@ -87,7 +87,7 @@ void scene::initScene(oglt::IApp* app) {
 	
 	// Test the fbx model loading
 	// developing...
-	testModel.load("data/models/TdaJKStyleMaya2/scenes/TdaJKStyle.fbx");
+	testModel.load("data/models/MIKU/scenes/MIKU.fbx");
 	testModel.setShaderProgram(&spFbx);
 	testObj.addRenderObj(&testModel);
 	testObj.setShaderProgram(&spFbx);
@@ -108,6 +108,7 @@ void scene::renderScene(oglt::IApp* app) {
 
 	worldTree.calcNodeHeirarchyTransform();
 	camera.update(cameraUpdateMode);
+	//testModel.updateAnimation(app->getDeltaTime());
 
 	worldTree.render(OGLT_RENDER_CHILDREN);
 

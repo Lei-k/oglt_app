@@ -10,6 +10,7 @@ FbxManager* FbxModel::manager;
 FbxModel::FbxModel()
 {
 	loaded = false;
+	timer = 0.0f;
 }
 
 FbxModel::~FbxModel()
@@ -108,6 +109,9 @@ bool FbxModel::load(const string & fileName)
 	cout << "colors size: " << colors.getCurrentSize() / sizeof(glm::vec4) << endl;
 	cout << "uv0s size: " << uvs[0].getCurrentSize() / sizeof(glm::vec2) << endl;
 	cout << "normals size: " << normals.getCurrentSize() / sizeof(glm::vec3) << endl;
+	cout << "vertex bone indices size: " << boneIndices.getCurrentSize() / (4 * sizeof(int)) << endl;
+	cout << "vetex bone weights size: " << boneWeights.getCurrentSize() / (4 * sizeof(float)) << endl;
+	cout << "bone infos size: " << boneInfos.size() << endl;
 	cout << "texture size: " << textures.size() << endl;
 	cout << "mesh size: " << meshs.size() << endl;
 	cout << "textures: " << endl;
@@ -163,6 +167,8 @@ bool FbxModel::loadFromScene(FbxScene * scene)
 	FOR(i, MAX_UV_CHANNEL) {
 		uvs[i].createVBO();
 	}
+	boneIndices.createVBO();
+	boneWeights.createVBO();
 
 	processNode(rootNode);
 }
@@ -202,6 +208,9 @@ void FbxModel::processMesh(FbxNode * node)
 	glm::vec2 uv[3][MAX_UV_CHANNEL];
 	Triangle triangle;
 
+	vector<uint> ctrlPointIndices;
+	vector<VertexBoneData> ctrlPointBones;
+
 	Mesh meshEntry;
 	meshEntry.startIndex = vertices.getCurrentSize() / sizeof(glm::vec3);
 
@@ -211,6 +220,7 @@ void FbxModel::processMesh(FbxNode * node)
 		triangle.startIndex = vertices.getCurrentSize() / sizeof(glm::vec3);
 		FOR (j, 3) {
 			int ctrlPointIndex = mesh->GetPolygonVertex(i, j);
+			ctrlPointIndices.push_back(ctrlPointIndex);
 
 			readVertex(mesh, ctrlPointIndex, &vertex[j]);
 
@@ -236,6 +246,9 @@ void FbxModel::processMesh(FbxNode * node)
 		}
 		meshEntry.triangles.push_back(triangle);
 	}
+
+	connectSkeletonToMesh(mesh, ctrlPointBones);
+	mapVertexBoneFromCtrlPoint(ctrlPointBones, ctrlPointIndices);
 
 	connectMtlToMesh(mesh, &meshEntry);
 	loadMaterial(mesh, &meshEntry);
@@ -509,7 +522,7 @@ void FbxModel::loadMaterialAttribute(FbxSurfaceMaterial * surfaceMaterial, Mater
 		fbxColor = surfacePhone->Emissive;
 		color = vec3(fbxColor[0], fbxColor[1], fbxColor[2]);
 		outMaterial->setColorParam(EMISSIVE, color);
-
+		
 		FbxDouble factor = surfacePhone->TransparencyFactor;
 		outMaterial->setFactorParam(TRANSPARENCY_FACTOR, factor);
 		factor = surfacePhone->Shininess;
@@ -585,6 +598,119 @@ void FbxModel::loadTexture(FbxTexture * texture, MaterialParam param, Material *
 	}
 }
 
+void FbxModel::connectSkeletonToMesh(FbxMesh * fbxMesh, vector<VertexBoneData>& ctrlPointBones)
+{
+	FbxDeformer* deformer;
+	FbxSkin* skin;
+
+	ctrlPointBones.resize(fbxMesh->GetControlPointsCount());
+	FOR(i, fbxMesh->GetDeformerCount()) {
+		deformer = fbxMesh->GetDeformer(i);
+		if (deformer == NULL)
+			continue;
+
+		if (deformer->GetDeformerType() != FbxSkin::eSkin)
+			continue;
+
+		skin = FbxCast<FbxSkin>(deformer);
+		if (skin == NULL)
+			continue;
+
+		connectSkinToMesh(skin, ctrlPointBones);
+	}
+}
+
+void FbxModel::connectSkinToMesh(FbxSkin* skin, vector<VertexBoneData>& ctrlPointBones)
+{
+	FbxCluster* cluster;
+	FbxNode* node;
+	FbxAMatrix transformMatrix, linkMatrix;
+	
+	FOR(i, skin->GetClusterCount()) {
+		cluster = skin->GetCluster(i);
+		if (cluster == NULL)
+			continue;
+
+		node = cluster->GetLink();
+
+		if (node == NULL)
+			continue;
+
+		cluster->GetTransformMatrix(transformMatrix);
+		cluster->GetTransformLinkMatrix(linkMatrix);
+		glm::mat4 glmLinkMatrix = toGlmMatrix(linkMatrix);;
+		glm::mat4 glmTransformMatrix = toGlmMatrix(transformMatrix);
+
+		string boneName = node->GetName();
+		int boneIndex;
+		if (boneMapping.find(boneName) == boneMapping.end()) {
+			BoneInfo boneInfo;
+			boneInfo.boneOffset = glm::inverse(glmLinkMatrix) * glmTransformMatrix;
+			boneInfo.finalTransform = glmLinkMatrix * boneInfo.boneOffset;
+			boneIndex = boneInfos.size();
+			boneInfos.push_back(boneInfo);
+			boneMapping[boneName] = boneIndex;
+		}
+		else {
+			boneIndex = boneMapping[boneName];
+		}
+
+		int* ctrlPointIndices = cluster->GetControlPointIndices();
+		double* ctrlPointWeights = cluster->GetControlPointWeights();
+
+		FOR(i, cluster->GetControlPointIndicesCount()) {
+			int ctrlPointIndex = ctrlPointIndices[i];
+			float weight = ctrlPointWeights[i];
+			ctrlPointBones[ctrlPointIndex].addBoneData(boneIndex, weight);
+		}
+	}
+}
+
+void FbxModel::mapVertexBoneFromCtrlPoint(vector<VertexBoneData>& ctrlPointBones, vector<oglt::uint>& ctrlPointIndices)
+{
+	FOR(i, ESZ(ctrlPointIndices)) {
+		VertexBoneData* vbd = &ctrlPointBones[ctrlPointIndices[i]];
+		boneIndices.addData(vbd->boneIndices, 4 * sizeof(int));
+		boneWeights.addData(vbd->weights, 4 * sizeof(float));
+	}
+}
+
+void FbxModel::readNodeCurve(FbxAnimLayer * animLayer, FbxAnimEvaluator* animEvaluator, FbxNode * node, FbxTime& time)
+{
+	if (node == NULL) return;
+
+	string nodeName = node->GetName();
+	if (boneMapping.find(nodeName) != boneMapping.end()) {
+		FbxMatrix localMatrix = animEvaluator->GetNodeLocalTransform(node, time);
+		FbxMatrix globalMatrix = animEvaluator->GetNodeGlobalTransform(node, time);
+
+		uint boneIndex = boneMapping[nodeName];
+		boneInfos[boneIndex].finalTransform = toGlmMatrix(globalMatrix) * boneInfos[boneIndex].boneOffset;
+	}
+
+	FOR(i, node->GetChildCount()) {
+		readNodeCurve(animLayer, animEvaluator, node->GetChild(i), time);
+	}
+}
+
+void FbxModel::updateAnimation(float deltaTime)
+{
+	timer += deltaTime;
+
+	FbxAnimStack* animStack = scene->GetSrcObject<FbxAnimStack>(0);
+	if (animStack == NULL) return;
+	FbxAnimLayer* animLayer = animStack->GetSrcObject<FbxAnimLayer>();
+	if (animLayer == NULL) return;
+
+	FbxAnimEvaluator* animEvaluator = scene->GetAnimationEvaluator();
+	if (animEvaluator == NULL) return;
+
+	FbxTime time;
+	time.SetSecondDouble(timer);
+
+	readNodeCurve(animLayer, animEvaluator, scene->GetRootNode(), time);
+}
+
 void FbxModel::finalizeVBO()
 {
 	glGenVertexArrays(1, &vao);
@@ -613,6 +739,44 @@ void FbxModel::finalizeVBO()
 	uvs[0].uploadDataToGPU(GL_STATIC_DRAW);
 	glEnableVertexAttribArray(3);
 	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+	// vertex bone indices
+	boneIndices.bindVBO();
+	boneIndices.uploadDataToGPU(GL_STATIC_DRAW);
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 4, GL_INT, GL_FALSE, 0, 0);
+
+	// vertex bone weights
+	boneWeights.bindVBO();
+	boneWeights.uploadDataToGPU(GL_STATIC_DRAW);
+	glEnableVertexAttribArray(5);
+	glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 0, 0);
+}
+
+glm::mat4 FbxModel::toGlmMatrix(FbxAMatrix & matrix)
+{
+	float data[16];
+	data[0] = matrix.mData[0].mData[0]; data[1] = matrix.mData[0].mData[1]; data[2] = matrix.mData[0].mData[2]; data[3] = matrix.mData[0].mData[3];
+	data[4] = matrix.mData[1].mData[0]; data[5] = matrix.mData[1].mData[1]; data[6] = matrix.mData[1].mData[2]; data[7] = matrix.mData[1].mData[3];
+	data[8] = matrix.mData[2].mData[0]; data[9] = matrix.mData[2].mData[1]; data[10] = matrix.mData[2].mData[2]; data[11] = matrix.mData[2].mData[3];
+	data[12] = matrix.mData[3].mData[0]; data[13] = matrix.mData[3].mData[1]; data[14] = matrix.mData[3].mData[2]; data[15] = matrix.mData[3].mData[3];
+	return glm::mat4(data[0], data[4], data[8], data[12],
+		data[1], data[5], data[9], data[13],
+		data[2], data[6], data[10], data[14],
+		data[3], data[7], data[11], data[15]);
+}
+
+glm::mat4 FbxModel::toGlmMatrix(FbxMatrix & matrix)
+{
+	float data[16];
+	data[0] = matrix.mData[0].mData[0]; data[1] = matrix.mData[0].mData[1]; data[2] = matrix.mData[0].mData[2]; data[3] = matrix.mData[0].mData[3];
+	data[4] = matrix.mData[1].mData[0]; data[5] = matrix.mData[1].mData[1]; data[6] = matrix.mData[1].mData[2]; data[7] = matrix.mData[1].mData[3];
+	data[8] = matrix.mData[2].mData[0]; data[9] = matrix.mData[2].mData[1]; data[10] = matrix.mData[2].mData[2]; data[11] = matrix.mData[2].mData[3];
+	data[12] = matrix.mData[3].mData[0]; data[13] = matrix.mData[3].mData[1]; data[14] = matrix.mData[3].mData[2]; data[15] = matrix.mData[3].mData[3];
+	return glm::mat4(data[0], data[1], data[2], data[3],
+		data[4], data[5], data[6], data[7],
+		data[8], data[9], data[10], data[11],
+		data[12], data[13], data[14], data[15]);
 }
 
 void FbxModel::render(int renderType)
@@ -621,6 +785,8 @@ void FbxModel::render(int renderType)
 		return;
 
 	glBindVertexArray(vao);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	if (shaderProgram != NULL) {
 		shaderProgram->useProgram();
@@ -630,6 +796,11 @@ void FbxModel::render(int renderType)
 		shaderProgram->setUniform("sunLight.vColor", vec3(1.0f, 1.0f, 1.0f));
 		shaderProgram->setUniform("sunLight.vDirection", mutexSunLightDir);
 		shaderProgram->setUniform("sunLight.fAmbient", 1.0f);
+		char buf[50];
+		FOR(i, ESZ(boneInfos)) {
+			sprintf(buf, "gBones[%d]", i);
+			shaderProgram->setUniform(buf, boneInfos[i].finalTransform);
+		}
 	}
 
 	FOR(i, ESZ(meshs)) {
@@ -648,6 +819,7 @@ void FbxModel::render(int renderType)
 			}
 		}
 	}
+	glDisable(GL_BLEND);
 
 	// test rendering with per triangle, the fps reduce from 1300 to 55
 	/*FOR(i, ESZ(meshs)) {
@@ -655,4 +827,15 @@ void FbxModel::render(int renderType)
 			glDrawArrays(GL_TRIANGLES, meshs[i].triangles[j].startIndex, 3);
 		}
 	}*/
+}
+
+void FbxModel::VertexBoneData::addBoneData(int boneIndex, float weight)
+{
+	FOR(i, 4) {
+		if (weights[i] <= 0.00001f) {
+			boneIndices[i] = boneIndex;
+			weights[i] = weight;
+			return;
+		}
+	}
 }

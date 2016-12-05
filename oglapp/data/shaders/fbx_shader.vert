@@ -12,6 +12,12 @@ layout (location = 0) in vec3 inPosition;
 layout (location = 1) in vec4 inColor;
 layout (location = 2) in vec3 inNormal;
 layout (location = 3) in vec2 inCoord;
+layout (location = 4) in ivec4 boneIndices;
+layout (location = 5) in vec4 boneWeights;
+
+const int MAX_BONES = 200;
+
+uniform mat4 gBones[MAX_BONES];
 
 smooth out vec4 vColor;
 smooth out vec3 vNormal;
@@ -28,9 +34,14 @@ void main()
   vColor = inColor;
   vTexCoord = inCoord;
 
-  vEyeSpacePos = mMV*vec4(inPosition, 1.0);
-  gl_Position = mMVP*vec4(inPosition, 1.0);
+  mat4 boneTransform = gBones[boneIndices[0]] * boneWeights[0];
+  boneTransform += gBones[boneIndices[1]] * boneWeights[1];
+  boneTransform += gBones[boneIndices[2]] * boneWeights[2];
+  boneTransform += gBones[boneIndices[3]] * boneWeights[3];
 
-  vNormal = (matrices.normalMatrix*vec4(inNormal, 1.0)).xyz;
-  vWorldPos = (matrices.modelMatrix*vec4(inPosition, 1.0)).xyz;
+  vEyeSpacePos = mMV * vec4(inPosition, 1.0);
+  gl_Position = mMVP * vec4(inPosition, 1.0);
+
+  vNormal = (matrices.normalMatrix * vec4(inNormal, 1.0)).xyz;
+  vWorldPos = (matrices.modelMatrix * vec4(inPosition, 1.0)).xyz;
 }
